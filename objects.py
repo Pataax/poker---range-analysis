@@ -63,7 +63,7 @@ class FrameOpponentInformations:
         entry_vpip_pfr.grid(row = 0, column = 5, padx = 0, pady = 0, sticky = W)
 
         label_style.grid(row = 1, column = 0, padx = 0, pady = 0, sticky = W)
-        entry_style.grid(row = 1, column = 1, padx = 0, pady = 5, sticky = W)
+        entry_style.grid(row = 1, column = 1, padx = 0, pady = 5, sticky = W, columnspan = 3)
 
         label_hands.grid(row = 1, column = 4, padx = 0, pady = 0, sticky = W)
         entry_hands.grid(row = 1, column = 5, padx = 0, pady = 0, sticky = W)
