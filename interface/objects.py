@@ -8,14 +8,17 @@ class FrameStreetsButtons:
         self.name = name
         self.row = row
         self.column = column
-
+        buttons_dict = {}
 
         buttons_frame = tkinter.Frame(master, width = 80, height = 115)
         buttons_frame.grid(row = self.row, column = self.column, sticky = 's', ipady = 8)
     
         for n in range(self.qtd):
-            button = tkinter.Button(buttons_frame, text = f'{self.name}{n + 1}', width = 10)
-            button.grid(row = n, column = 0, padx = 5, pady = 3, sticky = 's')
+            new_button = tkinter.Button(buttons_frame, text = f'{self.name}{n + 1}', width = 10)
+            buttons_dict[f'{self.name}{n + 1}'] = new_button
+            print(buttons_dict)
+            new_button.grid(row = n, column = 0, padx = 5, pady = 3, sticky = 's')
+
 
 class FrameStreetsTable:
 
