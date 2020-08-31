@@ -4,7 +4,7 @@ import tkinter
 class FrameFlopButtons:
     def __init__(self, master):
         buttons_frame = tkinter.Frame(master)
-        buttons_frame.place(x = 10, y = 52)
+        buttons_frame.place(x = 10, y = 57)
     
         button_f1 = tkinter.Button(buttons_frame, text = 'F1', width = 10)
         button_f1.grid(row = 0, column = 0, padx = 5, pady = 3)
@@ -38,42 +38,42 @@ class FrameFlopEquity:
 
 
         entry_hands_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_hands_f1.grid(row = 1, column = 1, padx = 5, pady= 5)
+        entry_hands_f1.grid(row = 1, column = 1, padx = 5, pady= 7)
 
         entry_eq_villain_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_villain_f1.grid(row = 1, column = 2, padx = 5)
+        entry_eq_villain_f1.grid(row = 1, column = 2, padx = 5, pady= 7)
 
         entry_eq_hero_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_hero_f1.grid(row = 1, column = 3, padx = 5)
+        entry_eq_hero_f1.grid(row = 1, column = 3, padx = 5, pady= 7)
 
         entry_eq_split_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_split_f1.grid(row = 1, column = 4, padx = 5)
+        entry_eq_split_f1.grid(row = 1, column = 4, padx = 5, pady= 7)
     
 
         entry_hands_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_hands_f2.grid(row = 2, column = 1, padx = 5, pady= 5)
+        entry_hands_f2.grid(row = 2, column = 1, padx = 5, pady= 7)
 
         entry_eq_villain_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_villain_f2.grid(row = 2, column = 2, padx = 5)
+        entry_eq_villain_f2.grid(row = 2, column = 2, padx = 5, pady= 7)
 
         entry_eq_hero_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_hero_f2.grid(row = 2, column = 3, padx = 5)
+        entry_eq_hero_f2.grid(row = 2, column = 3, padx = 5, pady= 7)
 
         entry_eq_split_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_split_f2.grid(row = 2, column = 4, padx = 5)
+        entry_eq_split_f2.grid(row = 2, column = 4, padx = 5, pady= 7)
     
 
         entry_hands_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_hands_f3.grid(row = 3, column = 1, padx = 5, pady= 5)
+        entry_hands_f3.grid(row = 3, column = 1, padx = 5, pady= 7)
 
         entry_eq_villain_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_villain_f3.grid(row = 3, column = 2, padx = 5)
+        entry_eq_villain_f3.grid(row = 3, column = 2, padx = 5, pady= 7)
 
         entry_eq_hero_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_hero_f3.grid(row = 3, column = 3, padx = 5)
+        entry_eq_hero_f3.grid(row = 3, column = 3, padx = 5, pady= 7)
 
         entry_eq_split_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_eq_split_f3.grid(row = 3, column = 4, padx = 5)
+        entry_eq_split_f3.grid(row = 3, column = 4, padx = 5, pady= 7)
 
 class FrameFlopFoldEquity:
 
@@ -92,30 +92,30 @@ class FrameFlopFoldEquity:
 
 
         entry_fe_hands_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_hands_f1.grid(row = 1, column = 1, padx = 5, pady= 5)
+        entry_fe_hands_f1.grid(row = 1, column = 1, padx = 5, pady= 7)
 
         entry_fe_percent_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_percent_f1.grid(row = 1, column = 2, padx = 5)
+        entry_fe_percent_f1.grid(row = 1, column = 2, padx = 5, pady= 7)
 
         entry_cbet_f1 = tkinter.Entry(range_frame, width = 8)
-        entry_cbet_f1.grid(row = 1, column = 3, padx = 5)
+        entry_cbet_f1.grid(row = 1, column = 3, padx = 5, pady= 7)
 
 
         entry_fe_hands_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_hands_f2.grid(row = 2, column = 1, padx = 5, pady= 5)
+        entry_fe_hands_f2.grid(row = 2, column = 1, padx = 5, pady= 7)
 
         entry_fe_percent_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_percent_f2.grid(row = 2, column = 2, padx = 5)
+        entry_fe_percent_f2.grid(row = 2, column = 2, padx = 5, pady= 7)
 
         entry_cbet_f2 = tkinter.Entry(range_frame, width = 8)
-        entry_cbet_f2.grid(row = 2, column = 3, padx = 5)
+        entry_cbet_f2.grid(row = 2, column = 3, padx = 5, pady= 7)
 
 
         entry_fe_hands_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_hands_f3.grid(row = 3, column = 1, padx = 5, pady= 5)
+        entry_fe_hands_f3.grid(row = 3, column = 1, padx = 5, pady= 7)
 
         entry_fe_percent_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_fe_percent_f3.grid(row = 3, column = 2, padx = 5)
+        entry_fe_percent_f3.grid(row = 3, column = 2, padx = 5, pady= 7)
 
         entry_cbet_f3 = tkinter.Entry(range_frame, width = 8)
-        entry_cbet_f3.grid(row = 3, column = 3, padx = 5)
+        entry_cbet_f3.grid(row = 3, column = 3, padx = 5, pady= 7)

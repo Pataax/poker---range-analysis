@@ -1,11 +1,14 @@
 import tkinter
 from tkinter import ttk
 
+
 from tab_start import FrameBasicInformations, FrameOpponentInformations, FrameNotesAndInfos
 from tab_pre_flop import FramePreFlopButtons, FramePreFlopEquity, FramePreFlopFoldEquity
 from tab_flop import FrameFlopButtons, FrameFlopEquity, FrameFlopFoldEquity
 from tab_turn import FrameTurnButtons, FrameTurnEquity, FrameTurnFoldEquity
 from tab_river import FrameRiverButtons, FrameRiverEquity, FrameRiverFoldEquity
+
+from other_objects import FrameCards
 
 
 # main window
@@ -24,12 +27,14 @@ tab_pre_flop = ttk.Frame(root, width = 546, height = 210)
 tab_flop = ttk.Frame(root, width = 546, height = 210)
 tab_turn = ttk.Frame(root, width = 546, height = 210)
 tab_river = ttk.Frame(root, width = 546, height = 210)
+tab_test = ttk.Frame(root, width = 546, height = 210)
 
 tabcontrol.add(tab_start, text="Início")
 tabcontrol.add(tab_pre_flop, text="Pré-Flop")
 tabcontrol.add(tab_flop, text="Flop")
 tabcontrol.add(tab_turn, text="Turn")
 tabcontrol.add(tab_river, text="River")
+tabcontrol.add(tab_test, text="Teste")
 
 
 # frames
@@ -52,6 +57,12 @@ frame_turn_fold_equity = FrameTurnFoldEquity(tab_turn)
 frame_river_buttons = FrameRiverButtons(tab_river)
 frame_river_equity = FrameRiverEquity(tab_river)
 frame_river_fold_equity = FrameRiverFoldEquity(tab_river)
+
+frame_teste = FrameCards(tab_test, 'Hero', 0, 0, 5)
+frame_teste = FrameCards(tab_test, 'Flop', 0, 1, 5)
+frame_teste = FrameCards(tab_test, 'Turn', 0, 2, 5)
+frame_teste = FrameCards(tab_test, 'River', 0, 3, 5)
+
 
 
 

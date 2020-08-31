@@ -5,7 +5,7 @@ class FrameBasicInformations:
     
     def __init__(self, master):
         label_frame = tkinter.LabelFrame(master, text = "Informações Básicas", width = 258, height = 78, padx = 10, pady = 5)
-        label_frame.grid(row = 0, column = 0, padx = 1, pady = 10)
+        label_frame.grid(row = 0, column = 0, padx = 5, pady = 10)
 
         label_data = tkinter.Label(label_frame, text="Data: ", justify = 'left')
         entry_data = tkinter.Entry(label_frame, width = 11)
@@ -36,7 +36,7 @@ class FrameOpponentInformations:
     
     def __init__(self, master):
         label_frame = tkinter.LabelFrame(master, text = "Informações do Vilão", width = 258, height = 78, padx = 10, pady = 5)
-        label_frame.grid(row = 0, column = 1, padx = 1, pady = 10)
+        label_frame.grid(row = 0, column = 1, padx = 5, pady = 10)
 
         label_position = tkinter.Label(label_frame, text="Posição: ")
         entry_position = tkinter.Entry(label_frame, width = 3)
@@ -71,8 +71,8 @@ class FrameOpponentInformations:
 class FrameNotesAndInfos:
     
     def __init__(self, master):
-        label_frame = tkinter.LabelFrame(master, text = "Notes e Infos", width = 258, height = 100, padx = 5, pady = 5)
-        label_frame.grid(row = 1, column = 0, pady = 5, columnspan = 2, sticky = 'we')
+        label_frame = tkinter.LabelFrame(master, text = "Notes e Infos", width = 258, height = 100, padx = 5, pady = 10)
+        label_frame.grid(row = 1, column = 0, padx = 5, pady = 5, columnspan = 2, sticky = 'we')
 
         label_notes = tkinter.Label(label_frame, text = 'Notes')
         label_notes.grid(row = 0, column = 0, sticky = 'w')
