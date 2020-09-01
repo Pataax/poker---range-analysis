@@ -3,7 +3,7 @@ from tkinter import ttk
 
 
 from tab_start import FrameBasicInformations, FrameOpponentInformations, FrameNotesAndInfos
-from objects import FrameCards, FrameStreetsButtons, FrameStreetsTable
+from objects import FrameCards, FrameStreetsButtons, FrameStreetsTable, RangeWindow
 
 
 # main window
@@ -26,16 +26,21 @@ frame_opponent_informations = FrameOpponentInformations(tab_start)
 frame_notes_and_infos = FrameNotesAndInfos(tab_start)
 
 streets = {'Pré-Flop': ('PF', 2), 'Flop': ('F', 3), 'Turn': ('T', 3), 'River': ('R', 3)}
+buttons = {}
 for key, value in streets.items():
     # frame = ttk.Frame(tabcontrol)
     main_frame = tkinter.Frame(tabcontrol)
-    inside_frame = tkinter.Frame(main_frame)
+    inside_frame = tkinter.Frame(main_frame) # utilizado pra centralizar o frame na janela
     FrameStreetsButtons(inside_frame, value[1], value[0], 0, 0)
+    buttons[key] = FrameStreetsButtons(inside_frame, value[1], value[0], 0, 0)
+    print(buttons[key])
+
     FrameStreetsTable(inside_frame, value[1], 'equity', 0, 1)
     FrameStreetsTable(inside_frame, value[1], 'fold_equity', 0, 2)
     FrameCards(inside_frame, 1, 0)
     inside_frame.place(in_=main_frame, anchor="c", relx=.5, rely=.5)
     tabcontrol.add(main_frame, text = key)
 
+buttons["Pré-Flop"].buttons_dict["PF1"].config(state = 'disabled')
 
 root.mainloop()
