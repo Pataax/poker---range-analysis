@@ -14,7 +14,10 @@ class FrameStreetsButtons:
         buttons_frame.grid(row = self.row, column = self.column, sticky = 's', ipady = 8)
     
         for n in range(self.qtd):
-            new_button = tkinter.Button(buttons_frame, text = f'{self.name}{n + 1}', width = 10, command = RangeWindow)
+            new_button = tkinter.Button(
+                buttons_frame, text = f'{self.name}{n + 1}', width = 10, 
+                command = RangeWindow
+                )
             new_button.grid(row = n, column = 0, padx = 5, pady = 3, sticky = 's')
             self.buttons_dict[f'{self.name}{n + 1}'] = new_button
 
@@ -81,49 +84,45 @@ class FrameCards:
 class RangeWindow:
  
     def __init__(self):
-        range_window = tkinter.Toplevel()
-        range_window.title("Selecione o Range")
-        # range_window.geometry('300x300')
+        self.range_window = tkinter.Toplevel()
+        self.range_window.title("Selecione o Range")
+        self.create_range_buttons_matrix(self.range_window, 0, 0)
+        self.creates_auxiliary_buttons(self.range_window, 0, 1)
+        self.creates_space_comments(self.range_window, 2, 0)
 
+    def create_range_buttons_matrix(self, master, row, column):
+        self.row = row
+        self.column = column
+        self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
-        cards_frame = tkinter.Frame(range_window)
-        cards_frame.grid(row = 0, column = 0, padx = 5, pady = 5)
+        cards_frame = tkinter.Frame(master)
+        cards_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        for row in range (13):
+            for col in range (13):
+                self.range_buttons[row][col] = tkinter.Button(cards_frame, text = 'Ax')
+                self.range_buttons[row][col].grid(row = row, column = col)
 
-        # create buttons
-        for column in range(13):
-            for row in range(13):
-                card_button = tkinter.Button(cards_frame, text = 'Ax')
-                card_button.grid(row = row, column = column)
+    def creates_auxiliary_buttons(self, master, row, column):
+        self.row = row
+        self.column = column
 
-        # select colors and others options
-        options_frame = tkinter.Frame(range_window)
-        options_frame.grid(row = 0, column = 1, padx = 5, pady = 5)
-
-        button_clear = tkinter.Button(options_frame, text = "Limpar")
-        button_clear.grid(row = 0, column = 0)
-
+        auxiliary_frame = tkinter.Frame(master)
+        auxiliary_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        clear_button = tkinter.Button(auxiliary_frame, text = 'Limpar')
+        clear_button.grid(padx = 5)
         for i in range(8):
-            color_button = tkinter.Button(options_frame, width = 2)
-            color_button.grid(row = i + 1, column = 0, pady = 3)
+            color_button = tkinter.Button(auxiliary_frame, width = 2)
+            color_button.grid(pady = 5)
 
-        next_button = tkinter.Button(options_frame, text = 'Próx. Slot')
-        next_button.grid(pady = 15)
+    def creates_space_comments(self, master, row, column):
+        self.row = row
+        self.column = column
 
-        # create status bar
-        status_bar = tkinter.Label(range_window, text = 'status_bar', bd = 1, relief = 'sunken', anchor = 'e')
-        status_bar.grid(sticky = 'we')
-
-        # comments
-        comments_frame = tkinter.Frame(range_window)
-        comments_frame.grid()
-
+        comments_frame = tkinter.Frame(master)
+        comments_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
         comments_label = tkinter.Label(comments_frame, text = 'Comentários')
         comments_label.grid(row = 0, column = 0)
+        text_box = tkinter.Text(comments_frame, width = 40, height = 5)
+        text_box.grid(row = 1, column = 0, padx = 5, pady = 5)
 
-        text_box = tkinter.text(comments_frame, width = 50, height = 10)
-        text_box.grid(row = 1, column = 0)
-
-        #card suit selection
-        suit_selection = tkinter.Button(comments_frame, text = "Selecionar Naipe")
-        suit_selection.grid(row = 2, column = 0)
 

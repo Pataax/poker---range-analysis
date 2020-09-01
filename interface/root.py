@@ -33,7 +33,6 @@ for key, value in streets.items():
     inside_frame = tkinter.Frame(main_frame) # utilizado pra centralizar o frame na janela
     FrameStreetsButtons(inside_frame, value[1], value[0], 0, 0)
     buttons[key] = FrameStreetsButtons(inside_frame, value[1], value[0], 0, 0)
-    print(buttons[key])
 
     FrameStreetsTable(inside_frame, value[1], 'equity', 0, 1)
     FrameStreetsTable(inside_frame, value[1], 'fold_equity', 0, 2)
