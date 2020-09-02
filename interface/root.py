@@ -42,5 +42,3 @@ if __name__ == '__main__':
     root = tkinter.Tk()
     PokerRangeAnalysis(root)
     root.mainloop()
-
-# buttons["Pré-Flop"].buttons_dict["PF1"].config(state = 'disabled')

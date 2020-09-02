@@ -1,5 +1,8 @@
 import tkinter
 
+def stay_clicked(card_button):
+    print(card_button['text'])
+
 
 class FrameStreetsButtons:
     def __init__(self, master, qtd, name, row, column):
@@ -82,31 +85,51 @@ class RangeWindow:
     def __init__(self):
         self.range_window = tkinter.Toplevel()
         self.range_window.title("Selecione o Range")
-        self.create_range_buttons_matrix(self.range_window, 0, 0)
+        self.create_card_buttons_matrix(self.range_window, 0, 0)
         self.creates_auxiliary_buttons(self.range_window, 0, 1)
         self.creates_space_comments(self.range_window, 2, 0)
 
-    def create_range_buttons_matrix(self, master, row, column):
+    def create_card_buttons_matrix(self, master, row, column):
         self.row = row
         self.column = column
         self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
         cards_frame = tkinter.Frame(master)
-        cards_frame.grid(row = self.row, column = self.column, padx = 5, pady = 10)
+        cards_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10)
+        cards_name = ['AA', 'AKs', 'AQs', 'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s', 
+                      'AKo', 'KK', 'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'K7s', 'K6s', 'K5s', 'K4s', 'K3s', 'K2s',
+                      'AQo', 'KQo', 'QQ', 'QJs', 'QTs', 'Q9s', 'Q8s', 'Q7s', 'Q6s', 'Q5s', 'Q4s', 'Q3s', 'Q2s',
+                      'AJo', 'KJo', 'QJo', 'JJ', 'JTs', 'J9s', 'J8s', 'J7s', 'J6s', 'J5s', 'J4s', 'J3s', 'J2s',
+                      'ATo', 'KTo', 'QTo', 'JTo', 'TT', 'T9s', 'T8s', 'T7s', 'T6s', 'T5s', 'T4s', 'T3s', 'T2s',
+                      'A9o', 'K9o', 'Q9o', 'J9o', 'T9o', '99', '98s', '97s', '96s', '95s', '94s', '93s', '92s',
+                      'A8o', 'K8o', 'Q8o', 'J8o', 'T8o', '98o', '88', '87s', '86s', '85s', '84s', '83s', '82s',
+                      'A7o', 'K7o', 'Q7o', 'J7o', 'T7o', '97o', '87o', '77', '76s', '75s', '74s', '73s', '72s',
+                      'A6o', 'K6o', 'Q6o', 'J6o', 'T6o', '96o', '86o', '76o', '66', '65s', '64s', '63s', '62s',
+                      'A5o', 'K5o', 'Q5o', 'J5o', 'T5o', '95o', '85o', '75o', '65o', '55', '54s', '53s', '52s',
+                      'A4o', 'K4o', 'Q4o', 'J4o', 'T4o', '94o', '84o', '74o', '64o', '54o', '44', '43s', '42s',
+                      'A3o', 'K3o', 'Q3o', 'J3o', 'T3o', '93o', '83o', '73o', '63o', '53o', '43o', '33', '32s',
+                      'A2o', 'K2o', 'Q2o', 'J2o', 'T2o', '92o', '82o', '72o', '62o', '52o', '42o', '32o', '22', 
+        ]
+        card_buttons_dict = {}
+        cards_index = 0
         for row in range (13):
             for col in range (13):
-                self.range_buttons[row][col] = tkinter.Button(cards_frame, text = 'Ax')
-                self.range_buttons[row][col].grid(row = row, column = col)
+                text = cards_name[cards_index]
+                color = '#FFE7B5' if 's' in text else '#E7EFF7' if 'o' in text else '#CFDFC7'
+                new_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 3, bg = color, text = text, command = lambda: stay_clicked(card_buttons_dict[text]))
+                new_button.grid(row = row, column = col, padx = 1, pady = 1)
+                card_buttons_dict[text] = new_button
+                cards_index += 1
 
     def creates_auxiliary_buttons(self, master, row, column):
         self.row = row
         self.column = column
 
         auxiliary_frame = tkinter.Frame(master)
-        auxiliary_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        auxiliary_frame.grid(row = self.row, column = self.column, padx = 5)
         clear_button = tkinter.Button(auxiliary_frame, text = 'Limpar')
-        clear_button.grid(padx = 5)
-        for i in range(8):
+        clear_button.grid(padx = 5, pady = 10)
+        for _ in range(8): 
             color_button = tkinter.Button(auxiliary_frame, width = 2)
             color_button.grid(pady = 5)
 
@@ -114,11 +137,9 @@ class RangeWindow:
         self.row = row
         self.column = column
 
-        comments_frame = tkinter.Frame(master)
-        comments_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
-        comments_label = tkinter.Label(comments_frame, text = 'Comentários')
-        comments_label.grid(row = 0, column = 0)
-        text_box = tkinter.Text(comments_frame, width = 40, height = 5)
+        frame_comments = tkinter.Frame(master)
+        frame_comments.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        label_comments = tkinter.Label(frame_comments, text = 'Comentários')
+        label_comments.grid(row = 0, column = 0)
+        text_box = tkinter.Text(frame_comments, width = 50, height = 5)
         text_box.grid(row = 1, column = 0, padx = 5, pady = 5)
-
-
