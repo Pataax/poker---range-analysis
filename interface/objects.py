@@ -2,7 +2,6 @@ import tkinter
 
 
 class FrameStreetsButtons:
-
     def __init__(self, master, qtd, name, row, column):
         self.qtd = qtd
         self.name = name
@@ -23,7 +22,6 @@ class FrameStreetsButtons:
 
 
 class FrameStreetsTable:
-
     def __init__(self, master, rows, table_type, row, column):
         self.rows = rows
         self.table_type = table_type
@@ -53,14 +51,13 @@ class FrameStreetsTable:
 
 
 class FrameCards:
-
     def __init__(self, master, row, column):
         self.row = row
         self.column = column
 
         # main frame
         main_frame = tkinter.Frame(master, padx = 5, pady = 5, bd = 2, relief = 'groove')
-        main_frame.grid(row = self.row, column = self.column, pady = 10, columnspan = 3)
+        main_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10, columnspan = 3)
 
         labels_list = ['Hero', 'Flop', 'Turn', 'River']
 
@@ -82,7 +79,6 @@ class FrameCards:
 
 
 class RangeWindow:
- 
     def __init__(self):
         self.range_window = tkinter.Toplevel()
         self.range_window.title("Selecione o Range")
@@ -96,7 +92,7 @@ class RangeWindow:
         self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
         cards_frame = tkinter.Frame(master)
-        cards_frame.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        cards_frame.grid(row = self.row, column = self.column, padx = 5, pady = 10)
         for row in range (13):
             for col in range (13):
                 self.range_buttons[row][col] = tkinter.Button(cards_frame, text = 'Ax')
