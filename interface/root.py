@@ -3,7 +3,7 @@ from tkinter import ttk
 
 
 from tab_start import FrameBasicInformations, FrameOpponentInformations, FrameNotesAndInfos
-from objects import FrameCards, FrameStreetsButtons, FrameStreetsTable, RangeWindow
+from objects import FrameStreetsSelectCards, FrameStreetsButtons, FrameStreetsEquity, WindowRangeSelection
 
 
 class PokerRangeAnalysis:
@@ -33,9 +33,9 @@ class PokerRangeAnalysis:
             # inside_frame.place(in_=main_frame, anchor="c", relx=.5, rely=.5)
             FrameStreetsButtons(main_frame, value[1], value[0], 0, 0)
             buttons[key] = FrameStreetsButtons(main_frame, value[1], value[0], 0, 0)
-            FrameStreetsTable(main_frame, value[1], 'equity', 0, 1)
-            FrameStreetsTable(main_frame, value[1], 'fold_equity', 0, 2)
-            FrameCards(main_frame, 1, 0)
+            FrameStreetsEquity(main_frame, value[1], 'equity', 0, 1)
+            FrameStreetsEquity(main_frame, value[1], 'fold_equity', 0, 2)
+            FrameStreetsSelectCards(main_frame, 1, 0)
             master.add(main_frame, text = key)
 
 if __name__ == '__main__':
