@@ -1,7 +1,10 @@
 import tkinter
 
-def stay_clicked(card_button):
-    print(card_button['text'])
+def stay_clicked(card_button, color_button):
+    if card_button['bg'] == color_button:
+        card_button.config(bg = '#35A8FF')
+    else:
+        card_button.config(bg = color_button)
 
 
 class FrameStreetsButtons:
@@ -116,11 +119,13 @@ class RangeWindow:
             for col in range (13):
                 text = cards_name[cards_index]
                 color = '#FFE7B5' if 's' in text else '#E7EFF7' if 'o' in text else '#CFDFC7'
-                new_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 3, bg = color, text = text, command = lambda: stay_clicked(card_buttons_dict[text]))
+                new_button = self.range_buttons[row][col] = tkinter.Button(
+                    cards_frame, width = 3, bg = color, text = text)
+                new_button.config(command = lambda new_button = new_button, color = color: stay_clicked(new_button, color))
                 new_button.grid(row = row, column = col, padx = 1, pady = 1)
                 card_buttons_dict[text] = new_button
                 cards_index += 1
-
+        
     def creates_auxiliary_buttons(self, master, row, column):
         self.row = row
         self.column = column
