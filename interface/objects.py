@@ -77,7 +77,6 @@ class FrameStreetsSelectCards:
             button_choose.config(command = lambda label_name = label_name, 
                 button_choose = button_choose, entry = entry: WindowCardSelection(
                 label_name, button_choose, entry))
-
             button_clear = tkinter.Button(frame,image = img_clear, 
                 command = lambda entry = entry, button_choose = button_choose: self.button_clear_func(entry, button_choose))
             button_clear.image = img_clear  # keep a reference
@@ -194,6 +193,7 @@ class WindowCardSelection:
         self.name_window = name_window
         self.caller_button = caller_button
         self.entry = entry
+        self.temporary_entry = entry.get()
 
         self.window_card_selection = tkinter.Toplevel()
         self.window_card_selection.title(f'Seleção de cartas - {self.name_window}')
@@ -211,41 +211,54 @@ class WindowCardSelection:
         for c in range(len(cards_list)):
             for n in range(len(naipes_list)):
                 button_name = f'{cards_list[c]}{naipes_list[n][0]}'
+
                 card_button = tkinter.Button(cards_frame, width = 2, heigh = 2,
-                    text = button_name, fg = naipes_list[n][1])
+                    text = button_name, fg = naipes_list[n][1], relief = 'groove')
                 card_button.grid(row = n, column = c, padx = 1, pady = 1)
-                card_button['command'] = lambda card_button = card_button: self.select_card(card_button, self.entry)
+                card_button.config(
+                    command = lambda card_button = card_button: self.select_card(
+                        card_button, self.temporary_entry))
+                
+                # checks if the entry was filled in manually
                 if entry.get()[0:2] == button_name or entry.get()[2:] == button_name:
-                    card_button['relief'] = 'sunken'
+                    card_button['bg'] = 'gray'
+                
         
-        self.button_ok = tkinter.Button(main_frame, text = 'OK', width = 6,
-            command = lambda: self.button_ok_func(self.window_card_selection, self.caller_button),
-            state = 'disabled')
+        self.button_ok = tkinter.Button(main_frame, text = 'OK', width = 6, 
+            command = lambda: self.button_ok_func(
+                self.window_card_selection, self.caller_button, self.temporary_entry, self.entry))
         self.button_ok.grid(row = 1, column = 0, pady = 5)
 
-        self.button_cancel = tkinter.Button(main_frame, text = 'Cancel', width = 6,
+        self.button_cancel = tkinter.Button(main_frame, text = 'Cancel', width = 6, 
             command = lambda: self.button_cancel_func(self.window_card_selection, self.caller_button, self.entry))
         self.button_cancel.grid(row = 1, column = 1, pady = 5)
 
+        # checks whether the two cards have already been selected
+        self.handle_button_ok(self.temporary_entry)
+
+        # prevents more than one instance for the same street
         self.caller_button['state'] = 'disabled'
 
-    def select_card(self, card_button, entry):
-        if card_button['relief'] == 'raised':
-            if len(entry.get()) == 2:
-                card_button['relief'] = 'sunken'
-                entry.insert('end', card_button['text'])
-                self.button_ok['state'] = 'active'
-            if len(entry.get()) < 4:
-                card_button['relief'] = 'sunken'
-                entry.insert('end', card_button['text'])
-        elif card_button['relief'] == 'sunken':
-            card_button['relief'] = 'raised'
-            text = entry.get().replace(card_button['text'], '')
-            entry.delete(0, 'end')
-            entry.insert(0, text)
+    def select_card(self, card_button, temporary_entry):
+        if self.button_ok['state'] == 'disabled' and card_button['bg'] == 'SystemButtonFace':
+            card_button['bg'] = 'gray'
+            self.temporary_entry += card_button['text']
+            self.handle_button_ok(self.temporary_entry)
+        elif card_button['bg'] == 'gray':
+            card_button['bg'] = 'SystemButtonFace'
+            self.temporary_entry = self.temporary_entry.replace(card_button['text'], '')
+            self.handle_button_ok(self.temporary_entry)
+
+    def handle_button_ok(self, temporary_entry):
+        if len(temporary_entry) == 4:
+            self.button_ok['state'] = 'active'
+        else:
             self.button_ok['state'] = 'disabled'
-    
-    def button_ok_func(self, top_level, caller_button):
+
+    def button_ok_func(self, top_level, caller_button, temporary_entry, entry):
+        self.entry.delete(0, 'end')
+        self.entry.insert(0, temporary_entry)
+
         top_level.destroy()
         caller_button['state'] = 'active'
 
