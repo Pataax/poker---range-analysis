@@ -40,5 +40,6 @@ class PokerRangeAnalysis:
 
 if __name__ == '__main__':
     root = tkinter.Tk()
+    root.wm_resizable(False, False)
     PokerRangeAnalysis(root)
     root.mainloop()

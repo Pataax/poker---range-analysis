@@ -1,7 +1,6 @@
 import tkinter
 
 
-
 current_color = ''
 
 class FrameStreetsButtons:
@@ -57,23 +56,36 @@ class FrameStreetsSelectCards:
         main_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10, columnspan = 3)
 
         labels_list = ['Hero', 'Flop', 'Turn', 'River']
+        img_cards = tkinter.PhotoImage(file = 'interface/images/card_selection.png')
+        img_clear = tkinter.PhotoImage(file = 'interface/images/button_clear.png')
 
-        for i in range (len(labels_list)):
+        for i in range(len(labels_list)):
+            label_name = labels_list[i]
+
             frame = tkinter.Frame(main_frame)
             frame.grid(row = 0, column = i, padx = 5)
 
-            label = tkinter.Label(frame, text = f'{labels_list[i]}:')
+            label = tkinter.Label(frame, text = f'{label_name}:')
             label.grid(row = 0, column = 0)
 
             entry = tkinter.Entry(frame, width = 5)
             entry.grid(row = 0, column = 1, padx = 5)
 
-            button_choose = tkinter.Button(frame, width = 2, height = 1, 
-                command = WindowCardSelection)
+            button_choose = tkinter.Button(frame, image = img_cards)
+            button_choose.image = img_cards  # Keep a reference
             button_choose.grid(row = 0, column = 2, padx = 5, pady = 5)
+            button_choose.config(command = lambda label_name = label_name, 
+                button_choose = button_choose, entry = entry: WindowCardSelection(
+                label_name, button_choose, entry))
 
-            button_clear = tkinter.Button(frame, width = 2)
+            button_clear = tkinter.Button(frame,image = img_clear, 
+                command = lambda entry = entry, button_choose = button_choose: self.button_clear_func(entry, button_choose))
+            button_clear.image = img_clear  # keep a reference
             button_clear.grid(row = 0, column = 3)
+
+    def button_clear_func(self, entry, button_choose):
+        entry.delete(0, 'end')
+        button_choose['state'] = 'active'
 
 class WindowRangeSelection:
     def __init__(self):
@@ -114,7 +126,7 @@ class WindowRangeSelection:
                     cards_frame, width = 3, bg = color, text = text)
                 hand_button.grid(row = row, column = col)
                 hand_button.config(command = lambda hand_button = hand_button, 
-                    color = color: self.select_card(hand_button, color))
+                    color = color: self.select_hand(hand_button, color))
                 self.card_buttons_dict[text] = (hand_button, color)
                 hands_index += 1
         
@@ -150,7 +162,7 @@ class WindowRangeSelection:
         text_box = tkinter.Text(frame_comments, width = 50, height = 5)
         text_box.grid(row = 1, column = 0, padx = 5, pady = 5)
 
-    def select_card(self, card_button, color):
+    def select_hand(self, card_button, color):
         global current_color
         if current_color:
             card_button.config(bg = current_color)
@@ -178,18 +190,66 @@ class WindowRangeSelection:
             color_button['relief'] = 'raised'
 
 class WindowCardSelection:
-    def __init__(self):
-        window_card_selection = tkinter.Toplevel()
-        window_card_selection.title('Card Selection')
+    def __init__(self, name_window, caller_button, entry):
+        self.name_window = name_window
+        self.caller_button = caller_button
+        self.entry = entry
 
-        main_frame = tkinter.Frame(window_card_selection)
-        main_frame.grid(padx = 10, pady = 10)
+        self.window_card_selection = tkinter.Toplevel()
+        self.window_card_selection.title(f'Seleção de cartas - {self.name_window}')
+        self.window_card_selection.wm_resizable(False, False)
+
+        main_frame = tkinter.Frame(self.window_card_selection)
+        main_frame.grid()
 
         cards_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
-        naipes_list = ['d','h','s','c']
+        naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
+
+        cards_frame = tkinter.Frame(main_frame)
+        cards_frame.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
 
         for c in range(len(cards_list)):
             for n in range(len(naipes_list)):
-                card_button = tkinter.Button(main_frame, width = 2, heigh = 2,
-                    text = f'{cards_list[c]}{naipes_list[n]}')
+                button_name = f'{cards_list[c]}{naipes_list[n][0]}'
+                card_button = tkinter.Button(cards_frame, width = 2, heigh = 2,
+                    text = button_name, fg = naipes_list[n][1])
                 card_button.grid(row = n, column = c, padx = 1, pady = 1)
+                card_button['command'] = lambda card_button = card_button: self.select_card(card_button, self.entry)
+                if entry.get()[0:2] == button_name or entry.get()[2:] == button_name:
+                    card_button['relief'] = 'sunken'
+        
+        self.button_ok = tkinter.Button(main_frame, text = 'OK', width = 6,
+            command = lambda: self.button_ok_func(self.window_card_selection, self.caller_button),
+            state = 'disabled')
+        self.button_ok.grid(row = 1, column = 0, pady = 5)
+
+        self.button_cancel = tkinter.Button(main_frame, text = 'Cancel', width = 6,
+            command = lambda: self.button_cancel_func(self.window_card_selection, self.caller_button, self.entry))
+        self.button_cancel.grid(row = 1, column = 1, pady = 5)
+
+        self.caller_button['state'] = 'disabled'
+
+    def select_card(self, card_button, entry):
+        if card_button['relief'] == 'raised':
+            if len(entry.get()) == 2:
+                card_button['relief'] = 'sunken'
+                entry.insert('end', card_button['text'])
+                self.button_ok['state'] = 'active'
+            if len(entry.get()) < 4:
+                card_button['relief'] = 'sunken'
+                entry.insert('end', card_button['text'])
+        elif card_button['relief'] == 'sunken':
+            card_button['relief'] = 'raised'
+            text = entry.get().replace(card_button['text'], '')
+            entry.delete(0, 'end')
+            entry.insert(0, text)
+            self.button_ok['state'] = 'disabled'
+    
+    def button_ok_func(self, top_level, caller_button):
+        top_level.destroy()
+        caller_button['state'] = 'active'
+
+    def button_cancel_func(self, top_level, caller_button, entry):
+        top_level.destroy()
+        entry.delete(0, 'end')
+        caller_button['state'] = 'active'

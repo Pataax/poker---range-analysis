@@ -1,13 +1,22 @@
-import tkinter
+'''
+from tkinter import *
+from PIL import ImageTk, Image
 
-root = tkinter.Tk()
 
-def imprimir(text):
-    print(text)
+root = Tk()
+root.title("Titulo da janela")
 
-for i in range(3):
-    button = tkinter.Button(width = 2, text = i + 1, command = lambda i=i : imprimir((i + 1) * 10))
-    button.grid(padx = 100, pady = 10)
+my_pic = Image.open('interface/images/button_clear.png')
+resized = my_pic.resize((20, 20), Image.ANTIALIAS)
+resized.save('interface/images/card_selection_resized.png')
+
+new_pic = ImageTk.PhotoImage(resized)
+
+my_label = Label(root, image = new_pic)
+my_label.pack(pady = 20)
 
 
 root.mainloop()
+'''
+x = '1234'
+print(x[2:4])
