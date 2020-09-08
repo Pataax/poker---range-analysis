@@ -75,17 +75,15 @@ class FrameStreetsSelectCards:
             button_choose = tkinter.Button(frame, image = img_cards)
             button_choose.image = img_cards  # Keep a reference
             button_choose.grid(row = 0, column = 2, padx = 5, pady = 5)
-            button_choose.config(command = lambda label_name = label_name, 
-                button_choose = button_choose, entry = entry: WindowCardSelection(
-                label_name, button_choose, entry))
-            button_clear = tkinter.Button(frame,image = img_clear, 
-                command = lambda entry = entry, button_choose = button_choose: self.button_clear_func(entry, button_choose))
+            button_choose.config(command = lambda label_name = label_name, button_choose = button_choose, entry = entry: WindowCardSelection(label_name, button_choose, entry))
+            button_clear = tkinter.Button(frame, image = img_clear, command = lambda entry = entry, button_choose = button_choose, label_name = label_name: self.clear_button_click(entry, button_choose, label_name))
             button_clear.image = img_clear  # keep a reference
             button_clear.grid(row = 0, column = 3)
 
-    def button_clear_func(self, entry, button_choose):
+    def clear_button_click(self, entry: object, button_choose: object, label_name:str):
         entry.delete(0, 'end')
         button_choose['state'] = 'active'
+        selected_cards[label_name] = []
 
 class WindowRangeSelection:
     def __init__(self):
@@ -206,6 +204,7 @@ class WindowCardSelection:
         window_card_selection = tkinter.Toplevel()
         window_card_selection.title(f'Seleção de cartas - {owner_cards}')
         window_card_selection.wm_resizable(False, False)
+        window_card_selection.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
 
         main_frame = tkinter.Frame(window_card_selection)
         main_frame.grid()
@@ -228,19 +227,27 @@ class WindowCardSelection:
                 self.card_button_dict[card_button_name] = card_button
                 
         # creates auxiliary buttons
-        self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled', command = lambda: self.ok_button_click(window_card_selection, self.caller_button, selected_cards, self.entry))
+        self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled', command = lambda: self.ok_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
         self.ok_button.grid(row = 1, column = 0, pady = 5)
 
-        self.cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(window_card_selection, self.caller_button, selected_cards, self.entry))
+        self.cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
         self.cancel_button.grid(row = 1, column = 1, pady = 5)
 
     def check_entry_filled(self, owner_cards:str, input_entry: str):
-        '''Identifies whether you already have cards in the entry (added manually or previously clicked) before opening the selection window'''
+        '''Identifies whether you already have cards in the entry (added manually or previously selected)'''
 
+        # extracts the list of cards from the current owner
         list_selected_cards = CardsAndHands().selected_card(owner_cards, input_entry) 
         if list_selected_cards:
-''            self.card_button_click(owner_cards, 'Jh')
-            # self.manages_ok_button(owner_cards)
+            selected_cards[owner_cards] = []  # clears the list of cards and resends the command to select
+            for card in list_selected_cards:
+                self.card_button_click(owner_cards, card)
+        # Identifies the cards already selected on the other streets and disables them
+        for key in selected_cards:
+            if key != owner_cards:
+                for card in selected_cards[key]:
+                    self.card_button_dict[card]['state'] = 'disabled'
+
     
     def manages_ok_button(self, owner_cards: str) -> bool:
         '''Check how many cards have already been selected for this 'owner' '''
@@ -254,13 +261,17 @@ class WindowCardSelection:
     def card_button_click(self, owner_cards:str, card_button_name:str):
         '''Select and deselect cards if possible'''
 
-        # Checks whether cards can be selected (depends on the state of the ok button)
-        ok_button_permission = self.manages_ok_button(owner_cards)
-
+        # checks the number of cards that have already been selected
+        if len(selected_cards[owner_cards]) == 2:
+            permission = False
+        else:
+            permission = True
+        
         # identifies the object (button) by name
         card_button = self.card_button_dict[card_button_name]
 
-        if ok_button_permission == True and card_button['bg'] == 'SystemButtonFace':
+        if permission == True and card_button['bg'] == 'SystemButtonFace':
+            print('carta selecionada')
             card_button['bg'] = 'gray'
             CardsAndHands().selected_card(owner_cards, add_card = card_button['text'])
             self.manages_ok_button(owner_cards)
@@ -269,18 +280,19 @@ class WindowCardSelection:
             CardsAndHands().selected_card(owner_cards, '', del_card = card_button['text'])
             self.manages_ok_button(owner_cards)
 
-    def ok_button_click(self, top_level, caller_button, selected_cards, entry):
+    def ok_button_click(self, top_level: object, caller_button: object, entry: object, owner_cards: str):
+        text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}'
         self.entry.delete(0, 'end')
-        self.entry.insert(0, f'{selected_cards[0]}{selected_cards[1]}')
+        self.entry.insert(0, text)
 
         top_level.destroy()
         caller_button['state'] = 'active'
 
-    def cancel_button_click(self, top_level, caller_button, selected_cards, entry):
-        for card in selected_cards[:]:
-            CardsAndHands().selected_card('', card)
+    def cancel_button_click(self, top_level: object, caller_button: object, entry: object, owner_cards: str):
+        # delete the cards from the list
+        selected_cards[owner_cards] = []
+
         top_level.destroy()
-        entry.delete(0, 'end')
         caller_button['state'] = 'active'
 
 class CardsAndHands:
@@ -293,19 +305,22 @@ class CardsAndHands:
         return cards[index1][index2]
 
     def selected_card(self, owner_cards:str, add_card:str, del_card: str ='') -> list:
+        '''receives the text of the entry or the card buttons and inserts the cards in the list of their respective "owner" '''
         global selected_cards
-        # selected_cards[owner_cards] = []
 
+        # extracts the two cards from the text
         add_card_1 = add_card[0:2]
         add_card_2 = add_card[2:4]
         del_card_1 = del_card[0:2]
         del_card_2 = del_card[2:4]
 
-        if add_card_1 and add_card_1 not in selected_cards:
+        # insert the cards in the list
+        if add_card_1 and add_card_1 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_1)
-        if add_card_2 and add_card_2 not in selected_cards:
+        if add_card_2 and add_card_2 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_2)
 
+        # delete the cards from the list
         if del_card_1:
             selected_cards[owner_cards].remove(del_card_1)
         if del_card_2:
