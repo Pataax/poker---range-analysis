@@ -2,6 +2,7 @@ import tkinter
 
 
 current_color = ''
+selected_cards = {'Hero':[], 'Flop':[], 'Turn':[], 'River':[]}
 
 class FrameStreetsButtons:
     def __init__(self, master, qtd, name, row, column):
@@ -189,80 +190,127 @@ class WindowRangeSelection:
             color_button['relief'] = 'raised'
 
 class WindowCardSelection:
-    def __init__(self, name_window, caller_button, entry):
-        self.name_window = name_window
+    def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
+        '''Creates a window for selecting Hero, Flop, Turn and River cards'''
+        self.owner_cards = owner_cards
         self.caller_button = caller_button
+        self.caller_button['state'] = 'disabled'
         self.entry = entry
-        self.temporary_entry = entry.get()
+        self.create_gui(self.owner_cards)
+        self.check_entry_filled(self.owner_cards, self.entry.get())
 
-        self.window_card_selection = tkinter.Toplevel()
-        self.window_card_selection.title(f'Seleção de cartas - {self.name_window}')
-        self.window_card_selection.wm_resizable(False, False)
+    def create_gui(self, owner_cards: str) -> object:
+        '''Creates the window interface'''
 
-        main_frame = tkinter.Frame(self.window_card_selection)
+        # creates the top level
+        window_card_selection = tkinter.Toplevel()
+        window_card_selection.title(f'Seleção de cartas - {owner_cards}')
+        window_card_selection.wm_resizable(False, False)
+
+        main_frame = tkinter.Frame(window_card_selection)
         main_frame.grid()
 
-        cards_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
-        naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
-
+        # creates matrix of the card buttons
         cards_frame = tkinter.Frame(main_frame)
         cards_frame.grid(row = 0, column = 0, columnspan = 2, padx = 10, pady = 10)
-
-        for c in range(len(cards_list)):
-            for n in range(len(naipes_list)):
-                button_name = f'{cards_list[c]}{naipes_list[n][0]}'
-
-                card_button = tkinter.Button(cards_frame, width = 2, heigh = 2,
-                    text = button_name, fg = naipes_list[n][1], relief = 'groove')
-                card_button.grid(row = n, column = c, padx = 1, pady = 1)
-                card_button.config(
-                    command = lambda card_button = card_button: self.select_card(
-                        card_button, self.temporary_entry))
-                
-                # checks if the entry was filled in manually
-                if entry.get()[0:2] == button_name or entry.get()[2:] == button_name:
-                    card_button['bg'] = 'gray'
-                
         
-        self.button_ok = tkinter.Button(main_frame, text = 'OK', width = 6, 
-            command = lambda: self.button_ok_func(
-                self.window_card_selection, self.caller_button, self.temporary_entry, self.entry))
-        self.button_ok.grid(row = 1, column = 0, pady = 5)
+        self.card_button_dict = {}
 
-        self.button_cancel = tkinter.Button(main_frame, text = 'Cancel', width = 6, 
-            command = lambda: self.button_cancel_func(self.window_card_selection, self.caller_button, self.entry))
-        self.button_cancel.grid(row = 1, column = 1, pady = 5)
+        for row in range(4):
+            for col in range(13):
+                card_button_name = CardsAndHands().generate_cards(row, col)
+                card_button_color = CardsAndHands().naipes_list[row][1]
 
-        # checks whether the two cards have already been selected
-        self.handle_button_ok(self.temporary_entry)
+                card_button = tkinter.Button(cards_frame, width = 2, heigh = 2, text = card_button_name, fg = card_button_color, relief = 'groove')
+                card_button.grid(row = row, column = col, padx = 1, pady = 1)
+                card_button.config(command = lambda card_button_name = card_button_name: self.card_button_click(owner_cards, card_button_name))
 
-        # prevents more than one instance for the same street
-        self.caller_button['state'] = 'disabled'
+                self.card_button_dict[card_button_name] = card_button
+                
+        # creates auxiliary buttons
+        self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled', command = lambda: self.ok_button_click(window_card_selection, self.caller_button, selected_cards, self.entry))
+        self.ok_button.grid(row = 1, column = 0, pady = 5)
 
-    def select_card(self, card_button, temporary_entry):
-        if self.button_ok['state'] == 'disabled' and card_button['bg'] == 'SystemButtonFace':
+        self.cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(window_card_selection, self.caller_button, selected_cards, self.entry))
+        self.cancel_button.grid(row = 1, column = 1, pady = 5)
+
+    def check_entry_filled(self, owner_cards:str, input_entry: str):
+        '''Identifies whether you already have cards in the entry (added manually or previously clicked) before opening the selection window'''
+
+        list_selected_cards = CardsAndHands().selected_card(owner_cards, input_entry) 
+        if list_selected_cards:
+''            self.card_button_click(owner_cards, 'Jh')
+            # self.manages_ok_button(owner_cards)
+    
+    def manages_ok_button(self, owner_cards: str) -> bool:
+        '''Check how many cards have already been selected for this 'owner' '''
+        if len(selected_cards[owner_cards]) == 2:
+            self.ok_button['state'] = 'active'
+            return False
+        else:
+            self.ok_button['state'] = 'disabled'
+            return True
+
+    def card_button_click(self, owner_cards:str, card_button_name:str):
+        '''Select and deselect cards if possible'''
+
+        # Checks whether cards can be selected (depends on the state of the ok button)
+        ok_button_permission = self.manages_ok_button(owner_cards)
+
+        # identifies the object (button) by name
+        card_button = self.card_button_dict[card_button_name]
+
+        if ok_button_permission == True and card_button['bg'] == 'SystemButtonFace':
             card_button['bg'] = 'gray'
-            self.temporary_entry += card_button['text']
-            self.handle_button_ok(self.temporary_entry)
+            CardsAndHands().selected_card(owner_cards, add_card = card_button['text'])
+            self.manages_ok_button(owner_cards)
         elif card_button['bg'] == 'gray':
             card_button['bg'] = 'SystemButtonFace'
-            self.temporary_entry = self.temporary_entry.replace(card_button['text'], '')
-            self.handle_button_ok(self.temporary_entry)
+            CardsAndHands().selected_card(owner_cards, '', del_card = card_button['text'])
+            self.manages_ok_button(owner_cards)
 
-    def handle_button_ok(self, temporary_entry):
-        if len(temporary_entry) == 4:
-            self.button_ok['state'] = 'active'
-        else:
-            self.button_ok['state'] = 'disabled'
-
-    def button_ok_func(self, top_level, caller_button, temporary_entry, entry):
+    def ok_button_click(self, top_level, caller_button, selected_cards, entry):
         self.entry.delete(0, 'end')
-        self.entry.insert(0, temporary_entry)
+        self.entry.insert(0, f'{selected_cards[0]}{selected_cards[1]}')
 
         top_level.destroy()
         caller_button['state'] = 'active'
 
-    def button_cancel_func(self, top_level, caller_button, entry):
+    def cancel_button_click(self, top_level, caller_button, selected_cards, entry):
+        for card in selected_cards[:]:
+            CardsAndHands().selected_card('', card)
         top_level.destroy()
         entry.delete(0, 'end')
         caller_button['state'] = 'active'
+
+class CardsAndHands:
+    def __init__(self):
+        self.figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
+        self.naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
+    
+    def generate_cards(self, index1, index2):
+        cards = [[figure + naipe[0] for figure in self.figures_list] for naipe in self.naipes_list]
+        return cards[index1][index2]
+
+    def selected_card(self, owner_cards:str, add_card:str, del_card: str ='') -> list:
+        global selected_cards
+        # selected_cards[owner_cards] = []
+
+        add_card_1 = add_card[0:2]
+        add_card_2 = add_card[2:4]
+        del_card_1 = del_card[0:2]
+        del_card_2 = del_card[2:4]
+
+        if add_card_1 and add_card_1 not in selected_cards:
+            selected_cards[owner_cards].append(add_card_1)
+        if add_card_2 and add_card_2 not in selected_cards:
+            selected_cards[owner_cards].append(add_card_2)
+
+        if del_card_1:
+            selected_cards[owner_cards].remove(del_card_1)
+        if del_card_2:
+            selected_cards[owner_cards].remove(del_card_2)
+
+        print(selected_cards)
+        return selected_cards[owner_cards]
+            
