@@ -112,8 +112,7 @@ class WindowRangeSelection:
                       'A5o', 'K5o', 'Q5o', 'J5o', 'T5o', '95o', '85o', '75o', '65o', '55', '54s', '53s', '52s',
                       'A4o', 'K4o', 'Q4o', 'J4o', 'T4o', '94o', '84o', '74o', '64o', '54o', '44', '43s', '42s',
                       'A3o', 'K3o', 'Q3o', 'J3o', 'T3o', '93o', '83o', '73o', '63o', '53o', '43o', '33', '32s',
-                      'A2o', 'K2o', 'Q2o', 'J2o', 'T2o', '92o', '82o', '72o', '62o', '52o', '42o', '32o', '22', 
-        ]
+                      'A2o', 'K2o', 'Q2o', 'J2o', 'T2o', '92o', '82o', '72o', '62o', '52o', '42o', '32o', '22', ]
         self.card_buttons_dict = {}
         hands_index = 0
         for row in range (13):
@@ -248,7 +247,6 @@ class WindowCardSelection:
                 for card in selected_cards[key]:
                     self.card_button_dict[card]['state'] = 'disabled'
 
-    
     def manages_ok_button(self, owner_cards: str) -> bool:
         '''Check how many cards have already been selected for this 'owner' '''
         if len(selected_cards[owner_cards]) == 2:

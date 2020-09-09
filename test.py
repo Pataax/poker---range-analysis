@@ -1,27 +1,11 @@
-lista = ['as']
-if lista:
-    print('tem dados')
+figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
+naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
 
+cards = [[figure + naipe[0] for figure in figures_list] for naipe in naipes_list]
+hands = [[figure1 + figure2 for figure1 in figures_list] for figure2 in figures_list]
 
-
-
-'''
-from tkinter import *
-from PIL import ImageTk, Image
-
-
-root = Tk()
-root.title("Titulo da janela")
-
-my_pic = Image.open('interface/images/button_clear.png')
-resized = my_pic.resize((20, 20), Image.ANTIALIAS)
-resized.save('interface/images/card_selection_resized.png')
-
-new_pic = ImageTk.PhotoImage(resized)
-
-my_label = Label(root, image = new_pic)
-my_label.pack(pady = 20)
-
-
-root.mainloop()
-'''
+for i in cards:
+    print(i)
+print('-'*100)
+for i in hands:
+    print(i)
