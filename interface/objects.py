@@ -1,9 +1,63 @@
 import tkinter
 import itertools
-
+import pprint
 
 current_color = ''
 selected_cards = {'Hero':[], 'Flop':[], 'Turn':[], 'River':[]}
+
+figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
+naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
+cards = [[figure + naipe[0] for figure in figures_list] for naipe in naipes_list]
+hands = []
+pairs = []
+suiteds = []
+off_suiteds = []
+combinations = {}
+
+removed_combinations = {}
+
+for f1 in figures_list:
+    for f2 in figures_list:
+        if f1 == f2:
+            hands.append(f1+f2)
+        elif figures_list.index(f1) < figures_list.index(f2):
+            hands.append(f1+f2+'s')
+        else:
+            hands.append(f2+f1+'o')
+
+naipes = "dhsc"
+for hand in hands:
+    if hand[0] == hand[1]:
+        pairs.append(hand)
+    elif 's' in hand:
+        suiteds.append(hand)
+    elif 'o' in hand:
+        off_suiteds.append(hand)
+
+for hand in pairs:
+    combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
+    for naipe in itertools.combinations(naipes, len(hand))]
+
+for hand in suiteds:
+    combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
+    for naipe in list(itertools.product(naipes, repeat=2))]
+
+# gambiarra pra deixar somente as mãos suited
+for hand in suiteds:
+    for combo in combinations[hand][:]:
+        if combo[0][1] != combo[1][1]:
+            combinations[hand].remove(combo)
+
+for hand in off_suiteds:
+    combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
+    for naipe in list(itertools.product(naipes, repeat=2))]
+
+# gambiarra pra deixar somente as mãos 0ff-suiteds
+for hand in off_suiteds:
+    for combo in combinations[hand][:]:
+        if combo[0][1] == combo[1][1]:
+            combinations[hand].remove(combo)
+
 
 class FrameStreetsButtons:
     def __init__(self, master, qtd, name, row, column):
@@ -101,22 +155,19 @@ class WindowRangeSelection:
 
         cards_frame = tkinter.Frame(master)
         cards_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10)
-        hands = CardsAndHands().generate_hands()
-        hand_index = 0
+        hands_index = 0
         self.card_buttons_dict = {}
         for row in range (13):
             for col in range (13):
-                hand_button_pre_name = f'{hands[hand_index]}'
-                hand_button_n_combos = len(CardsAndHands().generate_combos()[hand_button_pre_name])
+                hand_button_pre_name = hands[hands_index]
+                hand_button_n_combos = len(combinations[hand_button_pre_name])
                 hand_button_name = f'{hand_button_pre_name}\n{hand_button_n_combos}'
                 color = '#FFE7B5' if 's' in hand_button_name else '#E7EFF7' if 'o' in hand_button_name else '#CFDFC7'
-                hand_button = self.range_buttons[row][col] = tkinter.Button(
-                    cards_frame, width = 5, bg = color, text = hand_button_name)
+                hand_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 5, bg = color, text = hand_button_name)
                 hand_button.grid(row = row, column = col)
-                hand_button.config(command = lambda hand_button = hand_button, 
-                    color = color: self.select_hand(hand_button, color))
-                self.card_buttons_dict[hand_button_name] = (hand_button, color)
-                hand_index += 1
+                hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, color = color: self.select_hand(hand_button, hand_button_pre_name, color))
+                self.card_buttons_dict[hand_button_pre_name] = (hand_button, color)
+                hands_index += 1
         
     def creates_auxiliary_buttons(self, master, row, column):
         self.row = row
@@ -150,11 +201,11 @@ class WindowRangeSelection:
         text_box = tkinter.Text(frame_comments, width = 50, height = 5)
         text_box.grid(row = 1, column = 0, padx = 5, pady = 5)
 
-    def select_hand(self, card_button, color):
+    def select_hand(self, card_button, card_button_name, color):
         '''if any color button is selected, when clicking on the card button, its color is changed'''
         
         global current_color
-        card_button_combo = CardsAndHands().generate_combos()[card_button['text'][0:3]]
+        card_button_combo = combinations[card_button_name]
         if current_color:
             card_button.config(bg = current_color)
             print(card_button_combo)
@@ -212,8 +263,8 @@ class WindowCardSelection:
 
         for row in range(4):
             for col in range(13):
-                card_button_name = CardsAndHands().generate_cards(row, col)
-                card_button_color = CardsAndHands().naipes_list[row][1]
+                card_button_name = cards[row][col]
+                card_button_color = naipes_list[row][1]
 
                 card_button = tkinter.Button(cards_frame, width = 2, heigh = 2, text = card_button_name, fg = card_button_color, relief = 'groove')
                 card_button.grid(row = row, column = col, padx = 1, pady = 1)
@@ -265,7 +316,6 @@ class WindowCardSelection:
         card_button = self.card_button_dict[card_button_name]
 
         if permission == True and card_button['bg'] == 'SystemButtonFace':
-            print('carta selecionada')
             card_button['bg'] = 'gray'
             CardsAndHands().selected_card(owner_cards, add_card = card_button['text'])
             self.manages_ok_button(owner_cards)
@@ -290,20 +340,6 @@ class WindowCardSelection:
         caller_button['state'] = 'active'
 
 class CardsAndHands:
-    def __init__(self):
-        self.figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
-        self.naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
-        self.hands = []
-        self.pairs = []
-        self.non_pairs = []
-        self.suiteds = []
-        self.off_suiteds = []
-        self.combinations = {}
-    
-    def generate_cards(self, index1, index2):
-        cards = [[figure + naipe[0] for figure in self.figures_list] for naipe in self.naipes_list]
-        return cards[index1][index2]
-
     def selected_card(self, owner_cards:str, add_card:str, del_card: str ='') -> list:
         '''receives the text of the entry or the card buttons and inserts the cards in the list of their respective "owner" '''
         global selected_cards
@@ -317,51 +353,46 @@ class CardsAndHands:
         # insert the cards in the list
         if add_card_1 and add_card_1 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_1)
+            self.removes_combos(add_card_1)
         if add_card_2 and add_card_2 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_2)
+            self.removes_combos(add_card_2)
 
         # delete the cards from the list
         if del_card_1:
             selected_cards[owner_cards].remove(del_card_1)
+            self.re_add_combos(del_card_1)
         if del_card_2:
             selected_cards[owner_cards].remove(del_card_2)
+            self.re_add_combos(del_card_2)
 
-        print(selected_cards)
         return selected_cards[owner_cards]
 
-    def generate_hands(self) -> list:
-        '''generates a list with all hands of poker'''
-        for f1 in self.figures_list:
-            for f2 in self.figures_list:
-                if f1 == f2:
-                    self.hands.append(f1+f2)
-                elif self.figures_list.index(f1) < self.figures_list.index(f2):
-                    self.hands.append(f1+f2+'s')
-                else:
-                    self.hands.append(f2+f1+'o')
-        return self.hands
-    
-    def generate_combos(self) -> dict:
-        naipes = "dhsc"
+    def removes_combos(self, card):
+        '''removes all combinations of hands using this card'''
 
-        for hand in self.generate_hands():
-            if hand[0] == hand[1]:
-                self.pairs.append(hand)
-            elif 's' in hand:
-                self.suiteds.append(hand)
-            elif 'o' in hand:
-                self.off_suiteds.append(hand)
+        # create a dictionary with the combinations that will be deleted
+        for hand in combinations:
+            for combo in combinations[hand]:
+                if card in combo[0] or card in combo[1]:
+                    if hand not in removed_combinations:
+                        removed_combinations[hand] = []
+                        removed_combinations[hand].append(combo)
+                    else:
+                        removed_combinations[hand].append(combo)
+        # pprint.pprint(removed_combinations)
 
-        for hand in self.pairs:
-            self.combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
-            for naipe in itertools.combinations(naipes, len(hand))]
+        # deletes combinations from the original dictionary
+        for hand in removed_combinations:
+            for combo in removed_combinations[hand]:
+                if combo in combinations[hand]:
+                    combinations[hand].remove(combo)
+        # print(combinations[hand])
 
-        for hand in self.suiteds:
-            self.combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
-            for naipe in list(itertools.product(naipes, repeat=2))]
-
-        for hand in self.off_suiteds:
-            self.combinations[hand] = [(hand[0] + naipe[0], hand[1] + naipe[1],)
-            for naipe in list(itertools.product(naipes, repeat=2))]
-
-        return self.combinations
+    def re_add_combos(self, card):
+        for hand in removed_combinations:
+            for combo in removed_combinations[hand]:
+                if card in combo[0] or card in combo[1]:
+                    if combo not in combinations[hand]:
+                        combinations[hand].append(combo)
+        # print(combinations[hand])
