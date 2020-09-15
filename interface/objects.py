@@ -136,9 +136,11 @@ class FrameStreetsSelectCards:
             button_clear.grid(row = 0, column = 3)
 
     def clear_button_click(self, entry: object, button_choose: object, label_name:str):
+        CardsAndHands().selected_card(label_name, add_card = '', del_card = entry.get())
         entry.delete(0, 'end')
         button_choose['state'] = 'active'
-        selected_cards[label_name] = []
+        # selected_cards[label_name] = []
+        print(selected_cards)
 
 class WindowRangeSelection:
     def __init__(self):
