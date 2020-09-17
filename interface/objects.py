@@ -59,7 +59,7 @@ for hand in off_suiteds:
             combinations[hand].remove(combo)
 
 select_hands_total_combo = 0
-streets_entries_dict = {}
+streets_labels_dict = {}
 
 
 class FrameStreetsButtons:
@@ -70,12 +70,12 @@ class FrameStreetsButtons:
         self.column = column
 
         frame_buttons = tkinter.Frame(master)
-        frame_buttons.grid(row = self.row, column = self.column, sticky = 's', ipady = 8)
+        frame_buttons.grid(row = self.row, column = self.column, sticky = 's', ipady = 7)
     
         for n in range(self.qtd):
             button = tkinter.Button(frame_buttons, text = f'{self.name}{n + 1}', width = 10)
             button.config(command = lambda button = button: WindowRangeSelection(button))
-            button.grid(row = n, column = 0, padx = 5, pady = 3, sticky = 's')
+            button.grid(row = n, column = 0, padx = 5, pady = 5, sticky = 's')
 
 class FrameStreetsEquity:
     def __init__(self, master, street, rows, table_type, row, column):
@@ -103,9 +103,9 @@ class FrameStreetsEquity:
         for i in range(len(title_dict[self.table_type])):
             foo = str(f'{title_dict[self.table_type][i]}').replace('\n', '_').replace('. ', '_').replace('_(%)', '')
             for x in range(self.rows):
-                entry = tkinter.Entry(range_frame, width = 8)
-                entry.grid(row = x + 1, column = i, padx = 5, pady = 7)
-                streets_entries_dict[f'{street}{x+1}_{foo}'] = entry
+                label = tkinter.Label(range_frame, width = 8, relief = 'groove', bg = 'white')
+                label.grid(row = x + 1, column = i, padx = 5, pady = 7)
+                streets_labels_dict[f'{street}{x+1}_{foo}'] = label
         
 class FrameStreetsSelectCards:
     def __init__(self, master, row, column):
@@ -229,10 +229,9 @@ class WindowRangeSelection:
         cancel_button.grid(row = 0, column = 1, padx = 5, pady = 5)
     
     def ok_button_click(self, caller_button: object):
-        global select_hands_total_combo, streets_entries_dict
+        global select_hands_total_combo, streets_labels_dict
         street = caller_button['text']
-        streets_entries_dict[f'{street}_Range_(mãos)'].delete(0, 'end')
-        streets_entries_dict[f'{street}_Range_(mãos)'].insert(0, select_hands_total_combo)
+        streets_labels_dict[f'{street}_Range_(mãos)']['text'] = select_hands_total_combo
         # print(caller_button['text'])
     
     def cancel_button_click(self, top_level: object, caller_button: object):
