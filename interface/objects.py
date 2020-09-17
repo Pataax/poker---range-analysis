@@ -2,7 +2,8 @@ import tkinter
 import itertools
 import pprint
 
-current_color = ''
+current_color_button = ''
+color_buttons_dict = {}
 selected_cards = {'Hero':[], 'Flop':[], 'Turn':[], 'River':[]}
 
 figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
@@ -159,6 +160,7 @@ class WindowRangeSelection:
         self.creates_auxiliary_buttons(self.range_window, 0, 1)
         self.creates_space_comments(self.range_window, 2, 0)
         self.creates_ok_and_cancel_buttons(self.range_window, 3, 0)
+        self.check_range_pre_selected()
 
     def create_card_buttons_matrix(self, master, row, column):
         self.row = row
@@ -184,9 +186,10 @@ class WindowRangeSelection:
                 self.total_combinations += hand_button_n_combos
         
     def creates_auxiliary_buttons(self, master, row, column):
+        global current_color_button
+
         self.row = row
         self.column = column
-        self.color_buttons_dict = {}
         colors_dict = {'RF+': '#B2301E', 'RFF': '#BE6EAE', 'RF-': '#EA8376', 
                        'RM+': '#4572A9', 'RM-': '#81ACDF', 'RF': '#E8950F',
                        'RF-': '#FFCD69', 'SPLIT': '#27A2A1'}
@@ -197,12 +200,15 @@ class WindowRangeSelection:
             command = lambda: self.clear_cards())
         button_clear.grid(padx = 5, pady = 10)
         for key, color in colors_dict.items():
-            color_button = tkinter.Button(frame_auxiliary, width = 4, 
-                text = key, bg = color)
+            color_button = tkinter.Button(frame_auxiliary, width = 4, text = key, bg = color)
             color_button.grid(pady = 5)
-            color_button.config(command = lambda color_button = color_button, 
-                color = color: self.pick_color(color_button, color))
-            self.color_buttons_dict[key] = color_button
+            color_button.config(command = lambda color_button = color_button, color = color: self.pick_color(color_button, color))
+            range_color_label = tkinter.Label(frame_auxiliary, text = 0)
+            range_color_label.grid()
+            if key not in color_buttons_dict:
+                color_buttons_dict[key] = {}
+                color_buttons_dict[key]['button'] = color_button
+                color_buttons_dict[key]['label'] = range_color_label
 
     def creates_space_comments(self, master, row, column):
         self.row = row
@@ -223,16 +229,25 @@ class WindowRangeSelection:
 
         frame_buttons = tkinter.Frame(master)
         frame_buttons.grid(row = self.row, column = self.column, padx = 5, pady = 5)
-        ok_button = tkinter.Button(frame_buttons, text = 'OK', width = 6, command = lambda: self.ok_button_click(self.caller_button))
+        ok_button = tkinter.Button(frame_buttons, text = 'OK', width = 6, command = lambda: self.ok_button_click(self.range_window, self.caller_button))
         ok_button.grid(row = 0, column = 0, padx = 5, pady = 5)
         cancel_button = tkinter.Button(frame_buttons, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(self.range_window, self.caller_button))
         cancel_button.grid(row = 0, column = 1, padx = 5, pady = 5)
+
+    def check_range_pre_selected(self):
+        pass
+        # for color_button_name in color_buttons_dict:
+        #     if 'selected_range' in color_buttons_dict[color_button_name]:
+        #         print(color_buttons_dict[color_button_name])
     
-    def ok_button_click(self, caller_button: object):
+    def ok_button_click(self, top_level: object, caller_button: object):
         global select_hands_total_combo, streets_labels_dict
+
         street = caller_button['text']
         streets_labels_dict[f'{street}_Range_(mãos)']['text'] = select_hands_total_combo
-        # print(caller_button['text'])
+
+        top_level.destroy()
+        caller_button['state'] = 'active'
     
     def cancel_button_click(self, top_level: object, caller_button: object):
         top_level.destroy()
@@ -240,40 +255,56 @@ class WindowRangeSelection:
 
     def select_hand(self, card_button, card_button_name, color):
         '''if any color button is selected, when clicking on the card button, its color is changed'''
-        global current_color, select_hands_total_combo
-        if current_color and card_button['bg'] == color:
-            card_button.config(bg = current_color)
-            # print(card_button_combo)
+
+        global current_color_button, select_hands_total_combo
+
+        if current_color_button and card_button['bg'] == color:
+            # card_button.config(bg = color_buttons_dict[current_color_button]['button']['bg'])
+            card_button.config(bg = 'red')
             select_hands_total_combo += len(combinations[card_button_name])
             percentual = (select_hands_total_combo / self.total_combinations) * 100
             self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
-        elif current_color and card_button['bg'] == current_color:
+            color_buttons_dict[current_color_button]['label']['text'] += len(combinations[card_button_name])
+            if 'selected_range' not in color_buttons_dict[current_color_button]:
+                color_buttons_dict[current_color_button]['selected_range'] = []
+                color_buttons_dict[current_color_button]['selected_range'].append(card_button_name)
+            else:
+                color_buttons_dict[current_color_button]['selected_range'].append(card_button_name)
+            print(color_buttons_dict['RF+'])
+        elif current_color_button and card_button['bg'] == color_buttons_dict[current_color_button]['button']['bg']:
             card_button.config(bg = color)
             select_hands_total_combo -= len(combinations[card_button_name])
             percentual = (select_hands_total_combo / self.total_combinations) * 100
             self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
+            color_buttons_dict[current_color_button]['label']['text'] -= len(combinations[card_button_name])
+            color_buttons_dict[current_color_button]['selected_range'].remove(card_button_name)
+            print(color_buttons_dict['RF+'])
 
-    def pick_color(self, color_button, color):
-        global current_color
+    def pick_color(self, color_button: object, color):
+        global current_color_button
 
         # disabel other buttons
-        for button in self.color_buttons_dict.values():
-            if button != color_button:
-                button['relief'] = 'raised'
+        # for button_name in color_buttons_dict:
+        #     if color_buttons_dict[button_name]['button'] != color_button:
+        #         color_buttons_dict[button_name]['button']['relief'] = 'raised'
 
+        # pick a color
         if color_button['relief'] == 'raised':
             color_button['relief'] = 'sunken'
-            current_color = color
+            current_color_button = color_button['text']
         elif color_button['relief'] == 'sunken':
             color_button['relief'] = 'raised'
-            current_color = ''
+            current_color_button = ''
 
     def clear_cards(self):
         global current_color, select_hands_total_combo
+        
         for card_button in self.card_buttons_dict.values():
             card_button[0]['bg'] = card_button[1]
-        for color_button in self.color_buttons_dict.values():
-            color_button['relief'] = 'raised'
+        for color_button_name in color_buttons_dict:
+            color_buttons_dict[color_button_name]['button']['relief'] = 'raised'
+            color_buttons_dict[color_button_name]['label']['text'] = 0
+
         current_color = ''
         select_hands_total_combo = 0
         percentual = 0
