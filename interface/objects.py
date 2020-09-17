@@ -58,6 +58,9 @@ for hand in off_suiteds:
         if combo[0][1] == combo[1][1]:
             combinations[hand].remove(combo)
 
+select_hands_total_combo = 0
+streets_entries_dict = {}
+
 
 class FrameStreetsButtons:
     def __init__(self, master, qtd, name, row, column):
@@ -70,22 +73,22 @@ class FrameStreetsButtons:
         frame_buttons.grid(row = self.row, column = self.column, sticky = 's', ipady = 8)
     
         for n in range(self.qtd):
-            button = tkinter.Button(frame_buttons, text = f'{self.name}{n + 1}', 
-                width = 10, command = WindowRangeSelection)
+            button = tkinter.Button(frame_buttons, text = f'{self.name}{n + 1}', width = 10)
+            button.config(command = lambda button = button: WindowRangeSelection(button))
             button.grid(row = n, column = 0, padx = 5, pady = 3, sticky = 's')
 
 class FrameStreetsEquity:
-    def __init__(self, master, rows, table_type, row, column):
+    def __init__(self, master, street, rows, table_type, row, column):
+        self.street = street
         self.rows = rows
         self.table_type = table_type
         self.row = row
         self.column = column
-
+        
         title_dict = {
             'equity': ['Range\n(mãos)', 'Eq. Vilão\n(%)', 'Eq. Hero\n(%)', 'Split\n(%)'],
             'fold_equity': ['FE/Block\n(mãos)', 'FE/Block\n(%)', 'Cbet\n(%)'],
         }
-        
         
         # main frame
         range_frame = tkinter.Frame(master, padx = 5, pady = 5, bd = 2, relief = 'groove')
@@ -98,10 +101,12 @@ class FrameStreetsEquity:
 
         # create the entries(?)
         for i in range(len(title_dict[self.table_type])):
+            foo = str(f'{title_dict[self.table_type][i]}').replace('\n', '_').replace('. ', '_').replace('_(%)', '')
             for x in range(self.rows):
                 entry = tkinter.Entry(range_frame, width = 8)
                 entry.grid(row = x + 1, column = i, padx = 5, pady = 7)
-
+                streets_entries_dict[f'{street}{x+1}_{foo}'] = entry
+        
 class FrameStreetsSelectCards:
     def __init__(self, master, row, column):
         self.row = row
@@ -143,12 +148,17 @@ class FrameStreetsSelectCards:
         print(selected_cards)
 
 class WindowRangeSelection:
-    def __init__(self):
+    def __init__(self, caller_button: object):
+        self.caller_button = caller_button
+        self.caller_button['state'] = 'disabled'
         self.range_window = tkinter.Toplevel()
         self.range_window.title("Selecione o Range")
+        self.range_window.wm_resizable('false', 'false')
+        self.range_window.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click(self.range_window, self.caller_button))
         self.create_card_buttons_matrix(self.range_window, 0, 0)
         self.creates_auxiliary_buttons(self.range_window, 0, 1)
         self.creates_space_comments(self.range_window, 2, 0)
+        self.creates_ok_and_cancel_buttons(self.range_window, 3, 0)
 
     def create_card_buttons_matrix(self, master, row, column):
         self.row = row
@@ -159,6 +169,7 @@ class WindowRangeSelection:
         cards_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10)
         hands_index = 0
         self.card_buttons_dict = {}
+        self.total_combinations = 0
         for row in range (13):
             for col in range (13):
                 hand_button_pre_name = hands[hands_index]
@@ -170,6 +181,7 @@ class WindowRangeSelection:
                 hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, color = color: self.select_hand(hand_button, hand_button_pre_name, color))
                 self.card_buttons_dict[hand_button_pre_name] = (hand_button, color)
                 hands_index += 1
+                self.total_combinations += hand_button_n_combos
         
     def creates_auxiliary_buttons(self, master, row, column):
         self.row = row
@@ -196,23 +208,51 @@ class WindowRangeSelection:
         self.row = row
         self.column = column
 
-        frame_comments = tkinter.Frame(master)
+        frame_comments = tkinter.Frame(master)  
         frame_comments.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        self.label_combo_count = tkinter.Label(frame_comments, text = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos (0.00%)')
+        self.label_combo_count.grid(row = 0, column = 0, pady = 5)
         label_comments = tkinter.Label(frame_comments, text = 'Comentários')
-        label_comments.grid(row = 0, column = 0)
-        text_box = tkinter.Text(frame_comments, width = 50, height = 5)
-        text_box.grid(row = 1, column = 0, padx = 5, pady = 5)
+        label_comments.grid(row = 1, column = 0, sticky = 'w')
+        text_box = tkinter.Text(frame_comments, width = 72, height = 5)
+        text_box.grid(row = 2, column = 0, padx = 5, pady = 5)
+
+    def creates_ok_and_cancel_buttons(self, master, row, column):
+        self.row = row
+        self.column = column
+
+        frame_buttons = tkinter.Frame(master)
+        frame_buttons.grid(row = self.row, column = self.column, padx = 5, pady = 5)
+        ok_button = tkinter.Button(frame_buttons, text = 'OK', width = 6, command = lambda: self.ok_button_click(self.caller_button))
+        ok_button.grid(row = 0, column = 0, padx = 5, pady = 5)
+        cancel_button = tkinter.Button(frame_buttons, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(self.range_window, self.caller_button))
+        cancel_button.grid(row = 0, column = 1, padx = 5, pady = 5)
+    
+    def ok_button_click(self, caller_button: object):
+        global select_hands_total_combo, streets_entries_dict
+        street = caller_button['text']
+        streets_entries_dict[f'{street}_Range_(mãos)'].delete(0, 'end')
+        streets_entries_dict[f'{street}_Range_(mãos)'].insert(0, select_hands_total_combo)
+        # print(caller_button['text'])
+    
+    def cancel_button_click(self, top_level: object, caller_button: object):
+        top_level.destroy()
+        caller_button['state'] = 'active'
 
     def select_hand(self, card_button, card_button_name, color):
         '''if any color button is selected, when clicking on the card button, its color is changed'''
-        
-        global current_color
-        card_button_combo = combinations[card_button_name]
-        if current_color:
+        global current_color, select_hands_total_combo
+        if current_color and card_button['bg'] == color:
             card_button.config(bg = current_color)
-            print(card_button_combo)
-        else:
+            # print(card_button_combo)
+            select_hands_total_combo += len(combinations[card_button_name])
+            percentual = (select_hands_total_combo / self.total_combinations) * 100
+            self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
+        elif current_color and card_button['bg'] == current_color:
             card_button.config(bg = color)
+            select_hands_total_combo -= len(combinations[card_button_name])
+            percentual = (select_hands_total_combo / self.total_combinations) * 100
+            self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
 
     def pick_color(self, color_button, color):
         global current_color
@@ -230,10 +270,15 @@ class WindowRangeSelection:
             current_color = ''
 
     def clear_cards(self):
+        global current_color, select_hands_total_combo
         for card_button in self.card_buttons_dict.values():
             card_button[0]['bg'] = card_button[1]
         for color_button in self.color_buttons_dict.values():
             color_button['relief'] = 'raised'
+        current_color = ''
+        select_hands_total_combo = 0
+        percentual = 0
+        self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
 
 class WindowCardSelection:
     def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
@@ -363,16 +408,17 @@ class CardsAndHands:
         # delete the cards from the list
         if del_card_1:
             selected_cards[owner_cards].remove(del_card_1)
-            self.re_add_combos(del_card_1)
+            self.re_add_combos(del_card_1, owner_cards)
         if del_card_2:
             selected_cards[owner_cards].remove(del_card_2)
-            self.re_add_combos(del_card_2)
+            self.re_add_combos(del_card_2, owner_cards)
 
         return selected_cards[owner_cards]
 
     def removes_combos(self, card):
         '''removes all combinations of hands using this card'''
 
+        # print('combinations', combinations['AA'])
         # create a dictionary with the combinations that will be deleted
         for hand in combinations:
             for combo in combinations[hand]:
@@ -380,21 +426,38 @@ class CardsAndHands:
                     if hand not in removed_combinations:
                         removed_combinations[hand] = []
                         removed_combinations[hand].append(combo)
-                    else:
+                    elif hand in removed_combinations and combo not in removed_combinations[hand]:
                         removed_combinations[hand].append(combo)
-        # pprint.pprint(removed_combinations)
+        # print('removed combinations', removed_combinations['AA'])
 
         # deletes combinations from the original dictionary
         for hand in removed_combinations:
             for combo in removed_combinations[hand]:
                 if combo in combinations[hand]:
                     combinations[hand].remove(combo)
-        # print(combinations[hand])
+        # print('combinations', combinations['AA'])
 
-    def re_add_combos(self, card):
+    def re_add_combos(self, card, owner_cards):
+        ''' when you deselect a card, all combos of that card are returned to the main dictionary'''
+
+        locked_cards = []
+        for owner_cards in selected_cards:
+            for c in selected_cards[owner_cards]:
+                locked_cards.append(c)
+        # print('locked card', locked_cards)
+        # print('combinations', combinations['AA'])
+        # print('selected cards', selected_cards)
+
+        # based on the auxiliary dictionary, re-add combos from the main dictionary
         for hand in removed_combinations:
             for combo in removed_combinations[hand]:
-                if card in combo[0] or card in combo[1]:
-                    if combo not in combinations[hand]:
+                if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
                         combinations[hand].append(combo)
-        # print(combinations[hand])
+        
+        # after re-add in main dictionary, it also removes combos from the auxiliary dictionary
+        for hand in removed_combinations:
+            for combo in list(removed_combinations[hand]): # way to remove items from a dictionary by iterating over it
+                if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
+                    removed_combinations[hand].remove(combo)
+        # print('combinations AA', combinations['AA'])
+        # print('removed combinations', removed_combinations['AA'])
