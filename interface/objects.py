@@ -1,11 +1,9 @@
 import tkinter
 import itertools
-import pprint
+from pprint import pprint
 
-current_color_button = ''
-color_buttons_dict = {'RF+': {'color': '#B2301E'}, 'RFF': {'color' : '#BE6EAE'}, 'RF-': {'color': '#EA8376'}, 
-                       'RM+': {'color': '#4572A9'}, 'RM-': {'color': '#81ACDF'}, 'RF': {'color': '#E8950F'},
-                       'RF-': {'color': '#FFCD69'}, 'SPLIT': {'color': '#27A2A1'}}
+current_color_button_name = ''
+
 selected_cards = {'Hero':[], 'Flop':[], 'Turn':[], 'River':[]}
 
 figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
@@ -63,7 +61,9 @@ for hand in off_suiteds:
 
 select_hands_total_combo = 0
 streets_labels_dict = {}
+streets_ranges_control = {}
 
+# ----------------------------------------------------------------------------------------------------
 
 class FrameStreetsButtons:
     def __init__(self, master, qtd, name, row, column):
@@ -71,7 +71,6 @@ class FrameStreetsButtons:
         self.name = name
         self.row = row
         self.column = column
-        self.streets_buttons_dict = {}
 
         frame_buttons = tkinter.Frame(master)
         frame_buttons.grid(row = self.row, column = self.column, sticky = 's', ipady = 7)
@@ -81,7 +80,14 @@ class FrameStreetsButtons:
             button = tkinter.Button(frame_buttons, text = button_name, width = 10)
             button.config(command = lambda button = button: WindowRangeSelection(button))
             button.grid(row = n, column = 0, padx = 5, pady = 5, sticky = 's')
-            self.streets_buttons_dict[button_name] = button
+            streets_ranges_control[button_name] = {
+                'caller_button': button, 
+                'range_detail': {
+                    'RF+': {'color': '#B2301E'}, 'RFF': {'color' : '#BE6EAE'}, 'RF-': {'color': '#EA8376'}, 
+                    'RM+': {'color': '#4572A9'}, 'RM-': {'color': '#81ACDF'}, 'RF': {'color': '#E8950F'},
+                    'RF-': {'color': '#FFCD69'}, 'SPLIT': {'color': '#27A2A1'}
+                }
+            }
 
 class FrameStreetsEquity:
     def __init__(self, master, street, rows, table_type, row, column):
@@ -155,21 +161,27 @@ class FrameStreetsSelectCards:
 
 class WindowRangeSelection:
     def __init__(self, caller_button: object):
+        # print(caller_button['text'])
+        # streets_ranges_control['PF1']['range_detail']['RF+']['color'] = 'black'
+        # pprint(streets_ranges_control)
         self.caller_button = caller_button
         self.caller_button['state'] = 'disabled'
+
         self.range_window = tkinter.Toplevel()
         self.range_window.title(f"Selecione o Range - {caller_button['text']}")
         self.range_window.wm_resizable('false', 'false')
         self.range_window.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click(self.range_window, self.caller_button))
-        self.create_card_buttons_matrix(self.range_window, 0, 0)
-        self.creates_auxiliary_buttons(self.range_window, 0, 1)
+
+        self.create_hand_buttons_matrix(self.range_window, 0, 0, caller_button)
+        self.creates_auxiliary_buttons(self.range_window, 0, 1, self.caller_button['text'])
         self.creates_space_comments(self.range_window, 2, 0)
         self.creates_ok_and_cancel_buttons(self.range_window, 3, 0)
-        self.check_range_pre_selected()
+        self.check_range_pre_selected(self.caller_button['text'])
 
-    def create_card_buttons_matrix(self, master, row, column):
+    def create_hand_buttons_matrix(self, master, row, column, street_name):
         self.row = row
         self.column = column
+        self.street_name = street_name
         self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
         global select_hands_total_combo
@@ -185,33 +197,51 @@ class WindowRangeSelection:
                 hand_button_pre_name = hands[hands_index]
                 hand_button_n_combos = len(combinations[hand_button_pre_name])
                 hand_button_name = f'{hand_button_pre_name}\n{hand_button_n_combos}'
-                color = '#FFE7B5' if 's' in hand_button_name else '#E7EFF7' if 'o' in hand_button_name else '#CFDFC7'
-                hand_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 5, bg = color, text = hand_button_name)
+                original_color = '#FFE7B5' if 's' in hand_button_name else '#E7EFF7' if 'o' in hand_button_name else '#CFDFC7'
+
+                hand_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 5, bg = original_color, text = hand_button_name)
                 hand_button.grid(row = row, column = col)
-                hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, color = color: self.select_hand(hand_button, hand_button_pre_name, color))
-                self.card_buttons_dict[hand_button_pre_name] = (hand_button, color)
+                hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, original_color = original_color: self.select_hand(hand_button, hand_button_pre_name, original_color, street_name['text']))
+
+                self.card_buttons_dict[hand_button_pre_name] = (hand_button, original_color)
                 hands_index += 1
                 self.total_combinations += hand_button_n_combos
         
-    def creates_auxiliary_buttons(self, master, row, column):
-        global current_color_button
+    def creates_auxiliary_buttons(self, master, row, column, current_street):
+        """Cria os botões auxiliares de cor, limpar e próximo slot
+
+        Args:
+            master (object): local onde o frame será apresentado
+            row (interger): linha onde o frame será apresentado
+            column (interger): coluna onde o frame será apresentado
+            current_street (str): nome da street atual
+        """
 
         self.row = row
         self.column = column
+        self.current_street = current_street
+        # print(current_street)
 
         frame_auxiliary = tkinter.Frame(master)
         frame_auxiliary.grid(row = self.row, column = self.column, padx = 5)
+
         button_clear = tkinter.Button(frame_auxiliary, text = 'Limpar', command = lambda: self.clear_hands())
         button_clear.grid(padx = 5, pady = 20)
 
-        for key, value in color_buttons_dict.items():
+        # streets_ranges_control[current_street]['range_detail']['test'] = []
+
+        # pprint(streets_ranges_control)
+        for key, value in streets_ranges_control[current_street]['range_detail'].items():
             color_button = tkinter.Button(frame_auxiliary, width = 4, text = key, bg =  value['color'])
             color_button.grid(pady = 5)
-            color_button.config(command = lambda key = key: self.pick_color(key))
+            color_button.config(command = lambda key = key: self.pick_color(key, self.current_street))
+
             range_color_label = tkinter.Label(frame_auxiliary, text = 0)
             range_color_label.grid()
+
             value['button'] = color_button
             value['label'] = range_color_label
+        # pprint(streets_ranges_control[current_street])
 
         next_slot_button = tkinter.Button(frame_auxiliary, text = 'Próximo Slot', command = lambda: self.next_slot_click(self.range_window, self.caller_button))
         next_slot_button.grid(pady = 30)
@@ -240,14 +270,15 @@ class WindowRangeSelection:
         cancel_button = tkinter.Button(frame_buttons, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(self.range_window, self.caller_button))
         cancel_button.grid(row = 0, column = 1, padx = 5, pady = 5)
 
-    def check_range_pre_selected(self):
-        for key, value in color_buttons_dict.items():
-            if 'selected_range' in color_buttons_dict[key] and color_buttons_dict[key]['selected_range']:
-                # print(key, color_buttons_dict[key]['selected_range'])
-                if color_buttons_dict[key]['button']['relief'] == 'raised':
-                    self.pick_color(key)
+    def check_range_pre_selected(self, current_street):
+        path = streets_ranges_control[current_street]['range_detail']
+        for key, value in path.items():
+            if 'selected_range' in path[key] and path[key]['selected_range']:
+                # print(key, path[key]['selected_range'])
+                if path[key]['button']['relief'] == 'raised':
+                    self.pick_color(key, current_street)
                 for hand in value['selected_range'][:]:
-                    self.select_hand(self.card_buttons_dict[hand][0], str(hand), self.card_buttons_dict[hand][1])
+                    self.select_hand(self.card_buttons_dict[hand][0], str(hand), self.card_buttons_dict[hand][1], current_street)
     
     def ok_button_click(self, top_level: object, caller_button: object):
         global select_hands_total_combo, streets_labels_dict
@@ -262,71 +293,98 @@ class WindowRangeSelection:
         top_level.destroy()
         caller_button['state'] = 'active'
 
-    def select_hand(self, card_button, card_button_name, color):
-        '''if any color button is selected, when clicking on the card button, its color is changed'''
+    def select_hand(self, hand_button, hand_button_name, original_color, street_name):
+        """if any color button is selected, when clicking on the card button, its color is changed
 
-        global current_color_button, select_hands_total_combo
+        Args:
+            hand_button (object): botão referente a cada mão
+            hand_button_name (str): nome (texto) do botão
+            color (str): código da cor
+        """
+        global current_color_button_name, select_hands_total_combo
 
-        if current_color_button and card_button['bg'] == color:
-            card_button['bg'] = color_buttons_dict[current_color_button]['color']
-            select_hands_total_combo += len(combinations[card_button_name])
+        path = streets_ranges_control[street_name]['range_detail'][current_color_button_name]
+
+        if current_color_button_name and hand_button['bg'] == original_color:
+            hand_button['bg'] = path['color']
+
+            select_hands_total_combo += len(combinations[hand_button_name])
             percentual = (select_hands_total_combo / self.total_combinations) * 100
             self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
-            color_buttons_dict[current_color_button]['label']['text'] += len(combinations[card_button_name])
+            
+            path['label']['text'] += len(combinations[hand_button_name])
+            # print(streets_ranges_control['T2']['range_detail'][current_color_button_name]['label']['text'])
 
-            if 'selected_range' not in color_buttons_dict[current_color_button]:
-                color_buttons_dict[current_color_button]['selected_range'] = []
-                if card_button_name not in color_buttons_dict[current_color_button]['selected_range']:
-                    color_buttons_dict[current_color_button]['selected_range'].append(card_button_name)
-            elif card_button_name not in color_buttons_dict[current_color_button]['selected_range']:
-                color_buttons_dict[current_color_button]['selected_range'].append(card_button_name)
-            # print(color_buttons_dict['RF+'])
+            # adiciona a mão selecionada no range da street específica e da cor específica
+            if 'selected_range' not in path:
+                path['selected_range'] = []
+                # pprint(streets_ranges_control)
 
-            if 'combo_color_range' not in color_buttons_dict[current_color_button]:
-                color_buttons_dict[current_color_button]['combo_color_range'] = 0
-                color_buttons_dict[current_color_button]['combo_color_range'] = color_buttons_dict[current_color_button]['label']['text']
-            else:
-                color_buttons_dict[current_color_button]['combo_color_range'] = color_buttons_dict[current_color_button]['label']['text']
+                if hand_button_name not in path['selected_range']:
+                    path['selected_range'].append(hand_button_name)
+                    # pprint(streets_ranges_control)
+            elif hand_button_name not in path['selected_range']:
+                path['selected_range'].append(hand_button_name)
+            # pprint(streets_ranges_control)
 
-        elif current_color_button and card_button['bg'] == color_buttons_dict[current_color_button]['button']['bg']:
-            card_button.config(bg = color)
-            select_hands_total_combo -= len(combinations[card_button_name])
+            # if 'combo_color_range' not in path:
+            #     # streets_ranges_control[street_name]['range_detail'][current_color_button_name]['combo_color_range'] = 0
+            #     path['combo_color_range'] = path['label']['text']
+            #     # print(street_name, current_color_button_name, streets_ranges_control['PF1']['range_detail']['RF+'])
+            # else:
+            #     path['combo_color_range'] = path['label']['text']
+
+        elif current_color_button_name and hand_button['bg'] == path['button']['bg']:
+            hand_button.config(bg = original_color)
+
+            select_hands_total_combo -= len(combinations[hand_button_name])
             percentual = (select_hands_total_combo / self.total_combinations) * 100
             self.label_combo_count['text'] = f'Leque de mãos selecionado contém {select_hands_total_combo}/{self.total_combinations} mãos ({percentual:.2f}%)'
-            color_buttons_dict[current_color_button]['label']['text'] -= len(combinations[card_button_name])
-            color_buttons_dict[current_color_button]['selected_range'].remove(card_button_name)
-            # print(color_buttons_dict['RF+'])
+            
+            path['label']['text'] -= len(combinations[hand_button_name])
+            path['selected_range'].remove(hand_button_name)
+            # print(street_name, current_color_button_name, streets_ranges_control['PF1']['range_detail']['RF+']['selected_range'])
+        # pprint(streets_ranges_control)
 
-    def pick_color(self, color_button_name: object):
-        global current_color_button
+    def pick_color(self, color_button_name: object, current_street):
+        global current_color_button_name
+
+        path = streets_ranges_control[current_street]['range_detail']
 
         # disabel other buttons
-        for key in color_buttons_dict:
+        for key in path:
             if key != color_button_name:
-                color_buttons_dict[key]['button']['relief'] = 'raised'
+                path[key]['button']['relief'] = 'raised'
 
         # pick a color
-        if color_buttons_dict[color_button_name]['button']['relief'] == 'raised':
-            color_buttons_dict[color_button_name]['button']['relief'] = 'sunken'
-            current_color_button = color_button_name
-        elif color_buttons_dict[color_button_name]['button']['relief'] == 'sunken':
-            color_buttons_dict[color_button_name]['button']['relief'] = 'raised'
-            current_color_button = ''
+        if path[color_button_name]['button']['relief'] == 'raised':
+            path[color_button_name]['button']['relief'] = 'sunken'
+            current_color_button_name = color_button_name
+        elif path[color_button_name]['button']['relief'] == 'sunken':
+            path[color_button_name]['button']['relief'] = 'raised'
+            current_color_button_name = ''
+        # pprint(streets_ranges_control)
 
     def clear_hands(self):
-        global current_color_button, select_hands_total_combo
+        global current_color_button_name, select_hands_total_combo
         
         self.check_range_pre_selected()
 
-        for color_button_name in color_buttons_dict:
-            color_buttons_dict[color_button_name]['button']['relief'] = 'raised'
-        current_color_button = ''
+        for color_button_name in range_detail:
+            range_detail[color_button_name]['button']['relief'] = 'raised'
+        current_color_button_name = ''
 
     def next_slot_click(self, top_level: object, caller_button: object):
         self.ok_button_click(top_level, caller_button)
 
+        streets_buttons_list = list(streets_ranges_control)
+        next_button = streets_buttons_list[streets_buttons_list.index(caller_button['text']) + 1]
+        WindowRangeSelection(streets_ranges_control[next_button]['caller_button'])
+
 class WindowCardSelection:
     def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
+        pprint(streets_ranges_control)
+        # streets_ranges_control['PF1']['range_detail']['RF+']['button']['text'] = 'y'
         '''Creates a window for selecting Hero, Flop, Turn and River cards'''
         self.owner_cards = owner_cards
         self.caller_button = caller_button

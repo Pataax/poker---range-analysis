@@ -1,3 +1,12 @@
-botoes = {'botao1': {'nome_do_botao': 'objeto_botao', 'cor_do_botao': 'texto_cor_do_botao'}}
+from pprint import pprint
 
-print(botoes['botao1']['nome_do_botao'])
+d = {'azul': {'label': 'labelazul'}, 'amarelo': {'label': 'labelamarelo'}}
+
+foo = 'azul'
+path = d[foo]
+if 'select_range' not in path:
+    path['select_range'] = []
+
+print(d)
+
+
