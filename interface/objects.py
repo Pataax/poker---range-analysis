@@ -225,7 +225,7 @@ class WindowRangeSelection:
         frame_auxiliary = tkinter.Frame(master)
         frame_auxiliary.grid(row = self.row, column = self.column, padx = 5)
 
-        button_clear = tkinter.Button(frame_auxiliary, text = 'Limpar', command = lambda: self.clear_hands())
+        button_clear = tkinter.Button(frame_auxiliary, text = 'Limpar', command = lambda: self.clear_hands(self.caller_button))
         button_clear.grid(padx = 5, pady = 20)
 
         # streets_ranges_control[current_street]['range_detail']['test'] = []
@@ -365,13 +365,14 @@ class WindowRangeSelection:
             current_color_button_name = ''
         # pprint(streets_ranges_control)
 
-    def clear_hands(self):
+    def clear_hands(self, current_street):
         global current_color_button_name, select_hands_total_combo
-        
-        self.check_range_pre_selected()
+        self.check_range_pre_selected(current_street['text'])
 
-        for color_button_name in range_detail:
-            range_detail[color_button_name]['button']['relief'] = 'raised'
+        path = streets_ranges_control[current_street['text']]['range_detail']
+
+        for color_button_name in path:
+            path[current_color_button_name]['button']['relief'] = 'raised'
         current_color_button_name = ''
 
     def next_slot_click(self, top_level: object, caller_button: object):
@@ -380,6 +381,7 @@ class WindowRangeSelection:
         streets_buttons_list = list(streets_ranges_control)
         next_button = streets_buttons_list[streets_buttons_list.index(caller_button['text']) + 1]
         WindowRangeSelection(streets_ranges_control[next_button]['caller_button'])
+        # self.check_range_pre_selected('PF1')
 
 class WindowCardSelection:
     def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
