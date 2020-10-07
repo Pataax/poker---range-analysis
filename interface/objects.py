@@ -395,7 +395,6 @@ class WindowRangeSelection:
 
 class WindowCardSelection:
     def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
-        pprint(streets_ranges_control)
         # streets_ranges_control['PF1']['range_detail']['RF+']['button']['text'] = 'y'
         '''Creates a window for selecting Hero, Flop, Turn and River cards'''
         self.owner_cards = owner_cards
@@ -458,9 +457,19 @@ class WindowCardSelection:
 
     def manages_ok_button(self, owner_cards: str) -> bool:
         '''Check how many cards have already been selected for this 'owner' '''
-        if len(selected_cards[owner_cards]) == 2:
+
+        if owner_cards == 'Flop' and len(selected_cards[owner_cards]) == 3:
             self.ok_button['state'] = 'active'
             return False
+
+        elif owner_cards == 'Turn' or owner_cards == 'River' and len(selected_cards[owner_cards]) == 1:
+            self.ok_button['state'] = 'active'
+            return False
+
+        elif owner_cards == 'Hero' and len(selected_cards[owner_cards]) == 2:
+            self.ok_button['state'] = 'active'
+            return False
+
         else:
             self.ok_button['state'] = 'disabled'
             return True
@@ -469,7 +478,11 @@ class WindowCardSelection:
         '''Select and deselect cards if possible'''
 
         # checks the number of cards that have already been selected
-        if len(selected_cards[owner_cards]) == 2:
+        if owner_cards == 'Flop' and len(selected_cards[owner_cards]) == 3:
+            permission = False
+        elif (owner_cards == 'Turn' or owner_cards == 'River') and len(selected_cards[owner_cards]) == 1:
+            permission = False
+        elif owner_cards == 'Hero' and len(selected_cards[owner_cards]) == 2:
             permission = False
         else:
             permission = True
@@ -487,7 +500,13 @@ class WindowCardSelection:
             self.manages_ok_button(owner_cards)
 
     def ok_button_click(self, top_level: object, caller_button: object, entry: object, owner_cards: str):
-        text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}'
+        if owner_cards == 'Flop':
+            text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}{selected_cards[owner_cards][2]}'
+        elif owner_cards == 'Turn' or owner_cards == 'River':
+            text = f'{selected_cards[owner_cards][0]}'
+        else:
+            text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}'
+
         self.entry.delete(0, 'end')
         self.entry.insert(0, text)
 
@@ -509,8 +528,10 @@ class CardsAndHands:
         # extracts the two cards from the text
         add_card_1 = add_card[0:2]
         add_card_2 = add_card[2:4]
+        add_card_3 = add_card[4:6]
         del_card_1 = del_card[0:2]
         del_card_2 = del_card[2:4]
+        del_card_3 = del_card[4:6]
 
         # insert the cards in the list
         if add_card_1 and add_card_1 not in selected_cards[owner_cards]:
@@ -519,6 +540,9 @@ class CardsAndHands:
         if add_card_2 and add_card_2 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_2)
             self.removes_combos(add_card_2)
+        if add_card_3 and add_card_3 not in selected_cards[owner_cards]:
+            selected_cards[owner_cards].append(add_card_3)
+            self.removes_combos(add_card_3)
 
         # delete the cards from the list
         if del_card_1:
@@ -527,6 +551,10 @@ class CardsAndHands:
         if del_card_2:
             selected_cards[owner_cards].remove(del_card_2)
             self.re_add_combos(del_card_2, owner_cards)
+            self.re_add_combos(del_card_1, owner_cards)
+        if del_card_3:
+            selected_cards[owner_cards].remove(del_card_3)
+            self.re_add_combos(del_card_3, owner_cards)
 
         return selected_cards[owner_cards]
 
