@@ -303,7 +303,8 @@ class WindowRangeSelection:
         """
         global current_color_button_name, select_hands_total_combo
 
-        path = streets_ranges_control[street_name]['range_detail'][current_color_button_name]
+        if current_color_button_name: # apenas se alguma cor estiver selecionada
+            path = streets_ranges_control[street_name]['range_detail'][current_color_button_name]
 
         if current_color_button_name and hand_button['bg'] == original_color:
             hand_button['bg'] = path['color']
@@ -378,10 +379,19 @@ class WindowRangeSelection:
     def next_slot_click(self, top_level: object, caller_button: object):
         self.ok_button_click(top_level, caller_button)
 
+        # encontra a próxima street
         streets_buttons_list = list(streets_ranges_control)
         next_button = streets_buttons_list[streets_buttons_list.index(caller_button['text']) + 1]
+
+        # copia os ranges da street atual para a proxima street
+        old_path = streets_ranges_control[caller_button['text']]['range_detail']
+        new_path = streets_ranges_control[next_button]['range_detail']
+        for key in old_path:
+            if 'selected_range' in old_path[key]:
+                new_path[key]['selected_range'] = old_path[key]['selected_range']
+
+        # abre a janela da proxima street
         WindowRangeSelection(streets_ranges_control[next_button]['caller_button'])
-        # self.check_range_pre_selected('PF1')
 
 class WindowCardSelection:
     def __init__(self, owner_cards:str, caller_button:object, entry:object) -> object:
