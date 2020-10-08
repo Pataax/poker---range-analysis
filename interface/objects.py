@@ -141,7 +141,7 @@ class FrameStreetsSelectCards:
             label = tkinter.Label(frame, text = f'{label_name}:')
             label.grid(row = 0, column = 0)
 
-            entry = tkinter.Entry(frame, width = 5)
+            entry = tkinter.Entry(frame, width = 8)
             entry.grid(row = 0, column = 1, padx = 5)
 
             button_choose = tkinter.Button(frame, image = img_cards)
@@ -201,6 +201,8 @@ class WindowRangeSelection:
 
                 hand_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 5, bg = original_color, text = hand_button_name)
                 hand_button.grid(row = row, column = col)
+                if hand_button_n_combos == 0:
+                    hand_button['state'] = 'disabled'
                 hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, original_color = original_color: self.select_hand(hand_button, hand_button_pre_name, original_color, street_name['text']))
 
                 self.card_buttons_dict[hand_button_pre_name] = (hand_button, original_color)
@@ -368,12 +370,16 @@ class WindowRangeSelection:
 
     def clear_hands(self, current_street):
         global current_color_button_name, select_hands_total_combo
+
+        # automaticamente deseleciona todas as cartas
         self.check_range_pre_selected(current_street['text'])
 
+
+        # esquema para deselecionar os botoes de cor e limpar o current color
         path = streets_ranges_control[current_street['text']]['range_detail']
 
         for color_button_name in path:
-            path[current_color_button_name]['button']['relief'] = 'raised'
+            path[color_button_name]['button']['relief'] = 'raised'
         current_color_button_name = ''
 
     def next_slot_click(self, top_level: object, caller_button: object):

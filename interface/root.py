@@ -25,14 +25,15 @@ class PokerRangeAnalysis:
         FrameNotesAndInfos(tab_start)
 
         streets = {'Pré-Flop': ('PF', 2), 'Flop': ('F', 3), 'Turn': ('T', 3), 'River': ('R', 3)}
-        buttons = {}
+        # buttons = {}
         for key, value in streets.items():
             main_frame = tkinter.Frame()
             # used to center on the main_frame - don't work in class
             # inside_frame = tkinter.Frame(main_frame, bg = 'red') 
             # inside_frame.place(in_=main_frame, anchor="c", relx=.5, rely=.5)
+
             FrameStreetsButtons(main_frame, value[1], value[0], 0, 0)
-            buttons[key] = FrameStreetsButtons(main_frame, value[1], value[0], 0, 0)
+            # buttons[key] = FrameStreetsButtons(main_frame, value[1], value[0], 0, 0)
             FrameStreetsEquity(main_frame, value[0], value[1], 'equity', 0, 1)
             FrameStreetsEquity(main_frame, value[0], value[1], 'fold_equity', 0, 2)
             FrameStreetsSelectCards(main_frame, 1, 0)
