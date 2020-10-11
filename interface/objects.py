@@ -287,7 +287,34 @@ class WindowRangeSelection:
 
         street = caller_button['text']
         streets_labels_dict[f'{street}_Range_(mãos)']['text'] = select_hands_total_combo
+        
+        # calcula  a equidade do vilão
+        path = streets_ranges_control[street]['range_detail']
+        split = 0
+        range_fraco = 0
+        range_medio = 0
+        range_forte = 0
+        for key in path:
+            # split
+            if key == 'SPLIT':
+                split = path[key]['label']['text']
 
+            # range medio
+            if key in ['RM+', 'RM-']:
+                range_medio += path[key]['label']['text']
+            
+            #range fraco
+            if key == 'RF':
+                range_fraco = path[key]['label']['text']
+
+            # range forte
+            if key in ['RF+', 'RFF', 'RF-']:
+                range_forte += path[key]['label']['text']
+
+            streets_labels_dict[f'{street}_Split']['text'] = f'{(split / select_hands_total_combo) * 100:.2f}%'
+            streets_labels_dict[f'{street}_Eq_Hero']['text'] = f'{((range_fraco + range_medio / 2 )/ select_hands_total_combo) * 100:.2f}%'
+            streets_labels_dict[f'{street}_Eq_Vilão']['text'] = f'{((range_forte + range_medio / 2) / select_hands_total_combo) * 100:.2f}%'
+        
         top_level.destroy()
         caller_button['state'] = 'active'
     
