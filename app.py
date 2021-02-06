@@ -219,14 +219,17 @@ class PokerRangeAnalysis:
             button_choose = tkinter.Button(frame, image = img_cards)
             button_choose.image = img_cards  # Keep a reference
             button_choose.grid(row = 0, column = 2, padx = 5, pady = 5)
-            button_choose.config(command = lambda label_name = label_name, button_choose = button_choose, entry = entry: WindowCardSelection(label_name, button_choose, entry))
+            button_choose.config(command = lambda label_name = label_name, button_choose = button_choose, 
+            entry = entry: WindowCardSelection(label_name, button_choose, entry).create_gui(label_name))
             
-            button_clear = tkinter.Button(frame, image = img_clear, command = lambda entry = entry, button_choose = button_choose, label_name = label_name: self.clear_button_click(entry, button_choose, label_name))
+            button_clear = tkinter.Button(frame, image = img_clear, command = lambda entry = entry, 
+            button_choose = button_choose, label_name = label_name: self.clear_button_click(entry, button_choose, label_name))
             button_clear.image = img_clear  # keep a reference
             button_clear.grid(row = 0, column = 3)
 
     def clear_button_click(self, entry:object, button_choose:object, label_name:str):
-        CardsAndHands().selected_card(label_name, add_card = '', del_card = entry.get())
+        print(entry.get())
+        WindowCardSelection(label_name, button_choose, entry).manages_cards(label_name, add_card = '', del_card = entry.get())
         entry.delete(0, 'end')
         button_choose['state'] = 'active'
 
@@ -297,12 +300,11 @@ class WindowCardSelection:
         self.caller_button = caller_button
         self.caller_button['state'] = 'disabled'
         self.entry = entry
-        self.create_gui(self.owner_cards)
-        # self.check_entry_filled(self.owner_cards, self.entry)
 
     def create_gui(self, owner_cards:str) -> object:
         '''Creates the window interface'''
-        global cards_and_hands_dict
+
+        global cards_and_hands_dict  
 
         # creates the top level
         window_card_selection = tkinter.Toplevel()
@@ -329,33 +331,36 @@ class WindowCardSelection:
                 cards_and_hands_dict['card_buttons'][card_button_name] = card_button
                 
         # creates auxiliary buttons
-        self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled', command = lambda: self.ok_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
+        self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled')
+        self.ok_button.config(command = lambda: self.ok_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
         self.ok_button.grid(row = 1, column = 0, pady = 5)
 
         self.cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6, command = lambda: self.cancel_button_click(window_card_selection, self.caller_button, self.entry, self.owner_cards))
         self.cancel_button.grid(row = 1, column = 1, pady = 5)
 
+        self.check_entry_filled(self.owner_cards, self.entry)
+
         return cards_and_hands_dict['card_buttons']
 
-    # def check_entry_filled(self, owner_cards:str, entry:object):
-    #     '''Identifies whether you already have cards in the entry (added manually or previously selected)'''
+    def check_entry_filled(self, owner_cards:str, entry:object):
+        '''Identifies whether you already have cards in the entry (added manually or previously selected)'''
 
-    #     global selected_cards, cards_and_hands_dict
+        global selected_cards, cards_and_hands_dict
 
-    #     # extracts the list of cards from the current owner
-    #     list_selected_cards = self.selected_card(owner_cards, input_entry) 
-    #     if list_selected_cards:
-    #         selected_cards[owner_cards] = []  # clears the list of cards and resends the command to select
-    #         for card in list_selected_cards:
-    #             self.card_button_click(owner_cards, card)
+        # extracts the list of cards from the current owner
+        list_selected_cards = self.manages_cards(owner_cards, entry.get()) 
+        if list_selected_cards:
+            selected_cards[owner_cards] = []  # clears the list of cards and resends the command to select
+            for card in list_selected_cards:
+                self.card_button_click(owner_cards, cards_and_hands_dict['card_buttons'][card])
 
-    #     # Identifies the cards already selected on the other streets and disables them
-    #     for key in selected_cards:
-    #         if key != owner_cards:
-    #             for card in selected_cards[key]:
-    #                 cards_and_hands_dict['card_buttons'][card]['state'] = 'disabled'
+        # Identifies the cards already selected on the other streets and disables them
+        for key in selected_cards:
+            if key != owner_cards:
+                for card in selected_cards[key]:
+                    cards_and_hands_dict['card_buttons'][card]['state'] = 'disabled'
 
-    #     return list_selected_cards
+        return list_selected_cards
 
     def card_button_click(self, owner_cards:str, card_button:object):
         '''Select and deselect cards if possible'''
@@ -369,7 +374,7 @@ class WindowCardSelection:
             permission = False
         else:
             permission = True
-        
+
         if permission == True and card_button['bg'] == 'SystemButtonFace':
             card_button['bg'] = 'gray'
             self.manages_cards(owner_cards, add_card = card_button['text'])
@@ -385,51 +390,83 @@ class WindowCardSelection:
         global selected_cards
 
         # extracts the two cards from the text
-        add_card_1 = add_card[0:2]
-        add_card_2 = add_card[2:4]
-        add_card_3 = add_card[4:6]
-        del_card_1 = del_card[0:2]
-        del_card_2 = del_card[2:4]
-        del_card_3 = del_card[4:6]
+        add_card_1 = add_card[0:2].capitalize()
+        add_card_2 = add_card[2:4].capitalize()
+        add_card_3 = add_card[4:6].capitalize()
+        del_card_1 = del_card[0:2].capitalize()
+        del_card_2 = del_card[2:4].capitalize()
+        del_card_3 = del_card[4:6].capitalize()
 
         # insert the cards in the list
         if add_card_1 and add_card_1 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_1)
-            # self.removes_combos(add_card_1)
+            self.removes_combos(add_card_1)
         if add_card_2 and add_card_2 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_2)
-            # self.removes_combos(add_card_2)
+            self.removes_combos(add_card_2)
         if add_card_3 and add_card_3 not in selected_cards[owner_cards]:
             selected_cards[owner_cards].append(add_card_3)
-            # self.removes_combos(add_card_3)
+            self.removes_combos(add_card_3)
 
         # delete the cards from the list
         if del_card_1:
             selected_cards[owner_cards].remove(del_card_1)
-            # self.re_add_combos(del_card_1, owner_cards)
+            self.re_add_combos(del_card_1, owner_cards)
         if del_card_2:
             selected_cards[owner_cards].remove(del_card_2)
-            # self.re_add_combos(del_card_2, owner_cards)
-            # self.re_add_combos(del_card_1, owner_cards)
+            self.re_add_combos(del_card_2, owner_cards)
+            self.re_add_combos(del_card_1, owner_cards)
         if del_card_3:
             selected_cards[owner_cards].remove(del_card_3)
-            # self.re_add_combos(del_card_3, owner_cards)
+            self.re_add_combos(del_card_3, owner_cards)
 
-        return selected_cards[owner_cards]    
+        return selected_cards[owner_cards]
 
-    # def ok_button_click(self, top_level:object, caller_button:object, entry:object, owner_cards:str):
-    #     if owner_cards == 'Flop':
-    #         text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}{selected_cards[owner_cards][2]}'
-    #     elif owner_cards == 'Turn' or owner_cards == 'River':
-    #         text = f'{selected_cards[owner_cards][0]}'
-    #     else:
-    #         text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}'
+    def removes_combos(self, card:str) -> dict:
+        '''removes all combinations of hands using this card'''
+        global cards_and_hands_dict
 
-    #     self.entry.delete(0, 'end')
-    #     self.entry.insert(0, text)
+        # create a dictionary with the combinations that will be deleted
+        for hand in cards_and_hands_dict['combinations']:
+            for combo in cards_and_hands_dict['combinations'][hand]:
+                if card in combo[0] or card in combo[1]:
+                    if hand not in cards_and_hands_dict['removed_combinations']:
+                        cards_and_hands_dict['removed_combinations'][hand] = []
+                        cards_and_hands_dict['removed_combinations'][hand].append(combo)
+                    elif hand in cards_and_hands_dict['removed_combinations'] and combo not in cards_and_hands_dict['removed_combinations'][hand]:
+                        cards_and_hands_dict['removed_combinations'][hand].append(combo)
 
-    #     top_level.destroy()
-    #     caller_button['state'] = 'active'
+        # deletes combinations from the original dictionary
+        for hand in cards_and_hands_dict['removed_combinations']:
+            for combo in cards_and_hands_dict['removed_combinations'][hand]:
+                if combo in cards_and_hands_dict['combinations'][hand]:
+                    cards_and_hands_dict['combinations'][hand].remove(combo)
+
+        return cards_and_hands_dict['removed_combinations'], cards_and_hands_dict['combinations']
+
+    def re_add_combos(self, card:str, owner_cards:str) -> dict:
+        ''' when you deselect a card, all combos of that card are returned to the main dictionary'''
+        
+        global selected_cards, cards_and_hands_dict
+        
+        locked_cards = []
+        for owner_cards in selected_cards:
+            for card in selected_cards[owner_cards]:
+                locked_cards.append(card)
+
+        # based on the auxiliary dictionary, re-add combos from the main dictionary
+        for hand in cards_and_hands_dict['removed_combinations']:
+            for combo in cards_and_hands_dict['removed_combinations'][hand]:
+                if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
+                        cards_and_hands_dict['combinations'][hand].append(combo)
+        
+        # after re-add in main dictionary, it also removes combos from the auxiliary dictionary
+        for hand in cards_and_hands_dict['removed_combinations']:
+            for combo in list(cards_and_hands_dict['removed_combinations'][hand]): # way to remove items from a dictionary by iterating over it
+                if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
+                    cards_and_hands_dict['removed_combinations'][hand].remove(combo)
+
+        return cards_and_hands_dict['removed_combinations']
 
     def manages_ok_button(self, owner_cards:str) -> bool:
         '''Check how many cards have already been selected for this 'owner' '''
@@ -450,53 +487,30 @@ class WindowCardSelection:
             self.ok_button['state'] = 'disabled'
             return True
 
-    # def cancel_button_click(self, top_level:object, caller_button:object, entry:object, owner_cards:str):
-    #     # delete the cards from the list
-    #     selected_cards[owner_cards] = []
+    def ok_button_click(self, top_level:object, caller_button:object, entry:object, owner_cards:str):
+        ''' Insert the selected cards into the entry and close the window '''
 
-    #     top_level.destroy()
-    #     caller_button['state'] = 'active'
+        if owner_cards == 'Flop':
+            text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}{selected_cards[owner_cards][2]}'
+        elif owner_cards == 'Turn' or owner_cards == 'River':
+            text = f'{selected_cards[owner_cards][0]}'
+        else:
+            text = f'{selected_cards[owner_cards][0]}{selected_cards[owner_cards][1]}'
 
-    # def removes_combos(self, card):
-    #     '''removes all combinations of hands using this card'''
+        self.entry.delete(0, 'end')
+        self.entry.insert(0, text)
 
-    #     global cards_and_hands_dict
+        top_level.destroy()
+        caller_button['state'] = 'active'
 
-    #     # create a dictionary with the combinations that will be deleted
-    #     for hand in cards_and_hands_dict['combinations']:
-    #         for combo in cards_and_hands_dict['combinations'][hand]:
-    #             if card in combo[0] or card in combo[1]:
-    #                 if hand not in cards_and_hands_dict['removed_combinations']:
-    #                     cards_and_hands_dict['removed_combinations'][hand] = []
-    #                     cards_and_hands_dict['removed_combinations'][hand].append(combo)
-    #                 elif hand in cards_and_hands_dict['removed_combinations'] and combo not in cards_and_hands_dict['removed_combinations'][hand]:
-    #                     cards_and_hands_dict['removed_combinations'][hand].append(combo)
+    def cancel_button_click(self, top_level:object, caller_button:object, entry:object, owner_cards:str):
+        ''' delete the cards from the list '''
 
-    #     # deletes combinations from the original dictionary
-    #     for hand in cards_and_hands_dict['removed_combinations']:
-    #         for combo in cards_and_hands_dict['removed_combinations'][hand]:
-    #             if combo in cards_and_hands_dict['combinations'][hand]:
-    #                 cards_and_hands_dict['combinations'][hand].remove(combo)
-
-    # def re_add_combos(self, card, owner_cards):
-    #     ''' when you deselect a card, all combos of that card are returned to the main dictionary'''
-
-    #     locked_cards = []
-    #     for owner_cards in selected_cards:
-    #         for c in selected_cards[owner_cards]:
-    #             locked_cards.append(c)
-
-    #     # based on the auxiliary dictionary, re-add combos from the main dictionary
-    #     for hand in removed_combinations:
-    #         for combo in removed_combinations[hand]:
-    #             if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
-    #                     combinations[hand].append(combo)
+        selected_cards[owner_cards] = []
+        entry.delete(0, 'end')
         
-    #     # after re-add in main dictionary, it also removes combos from the auxiliary dictionary
-    #     for hand in removed_combinations:
-    #         for combo in list(removed_combinations[hand]): # way to remove items from a dictionary by iterating over it
-    #             if (card in combo[0] and combo[1] not in locked_cards) or (card in combo[1] and combo[0] not in locked_cards):
-    #                 removed_combinations[hand].remove(combo)
+        top_level.destroy()
+        caller_button['state'] = 'active'
 
 
 class WindowRangeSelection:
