@@ -20,7 +20,7 @@ class PokerRangeAnalysis:
 
     def creates_global_variables_lists_dicts(self) -> dict:
         '''method used only to store global variables'''
-        global figures_list, naipes_list, cards_matrix, cards_and_hands_dict, selected_cards
+        global figures_list, naipes_list, cards_matrix, cards_and_hands_dict, selected_cards, range_dict
 
         figures_list = ['A','K','Q','J','T','9','8','7','6','5','4','3','2']
         naipes_list = [('d','#014082'), ('h','#CC0000'), ('s','#000000'), ('c','#00732B')]
@@ -32,6 +32,8 @@ class PokerRangeAnalysis:
             'removed_combinations': {},
             'card_buttons': {},
             }
+
+        range_dict = {'Pré-Flop':{}, 'Flop':{}, 'Turn':{}, 'River':{}}
         
         selected_cards = {'Hero':[], 'Flop':[], 'Turn':[], 'River':[]}
 
@@ -147,22 +149,25 @@ class PokerRangeAnalysis:
         self.row = row
         self.column = column
 
+        global range_dict
+
         frame_buttons = tkinter.Frame(master)
         frame_buttons.grid(row = self.row, column = self.column, sticky = 's', ipady = 7)
     
         for n in range(self.qtd):
             button_name = f'{self.btn_name}{n + 1}'
             button = tkinter.Button(frame_buttons, text = button_name, width = 10)
-            # button.config(command = lambda button = button: WindowRangeSelection(button, self.street))
+            button.config(command = lambda button = button: WindowRangeSelection(button, self.street))
             button.grid(row = n, column = 0, padx = 5, pady = 5, sticky = 's')
-            # main_dict['streets'][street][button_name] = {
-            #     'caller_button': button, 
-            #     'range_detail': {
-            #         'RF+': {'color': '#B2301E'}, 'RFF': {'color' : '#BE6EAE'}, 'RF-': {'color': '#EA8376'}, 
-            #         'RM+': {'color': '#4572A9'}, 'RM-': {'color': '#81ACDF'}, 'RF': {'color': '#E8950F'},
-            #         'RF-': {'color': '#FFCD69'}, 'SPLIT': {'color': '#27A2A1'}
-            #     }
-            # }
+
+            range_dict[street][button_name] = {
+                'caller_button': button, 
+                'range_detail': {
+                    'RF+': {'color': '#B2301E'}, 'RFF': {'color' : '#BE6EAE'}, 'RF-': {'color': '#EA8376'}, 
+                    'RM+': {'color': '#4572A9'}, 'RM-': {'color': '#81ACDF'}, 'RF': {'color': '#E8950F'},
+                    'RF-': {'color': '#FFCD69'}, 'SPLIT': {'color': '#27A2A1'}
+                }
+            }
 
     def creates_frame_streets_equity(self, master:object, street:str, rows:str, table_type:str, row:str, column:str) -> object:
         self.street = street
@@ -228,7 +233,6 @@ class PokerRangeAnalysis:
             button_clear.grid(row = 0, column = 3)
 
     def clear_button_click(self, entry:object, button_choose:object, label_name:str):
-        print(entry.get())
         WindowCardSelection(label_name, button_choose, entry).manages_cards(label_name, add_card = '', del_card = entry.get())
         entry.delete(0, 'end')
         button_choose['state'] = 'active'
@@ -514,7 +518,11 @@ class WindowCardSelection:
 
 
 class WindowRangeSelection:
-    def __init__(self, caller_button:object, street):
+    '''Creates a window for selectingFlop, Turn and River ranges'''
+
+    def __init__(self, caller_button:object, street:str) -> object:
+        global select_hands_total_combo, cards_and_hands_dict
+
         self.caller_button = caller_button
         self.street = street
         self.caller_button['state'] = 'disabled'
@@ -530,44 +538,48 @@ class WindowRangeSelection:
         self.creates_ok_and_cancel_buttons(self.range_window, 3, 0)
         self.check_range_pre_selected(self.caller_button, self.street)
 
-    def create_hand_buttons_matrix(self, master, row, column, street_name):
+    def create_hand_buttons_matrix(self, master: object, row:str, column:str, street_name:str):
         self.row = row
         self.column = column
         self.street_name = street_name
         self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
-        global select_hands_total_combo
-        select_hands_total_combo = 0
+        # select_hands_total_combo = 0
 
         cards_frame = tkinter.Frame(master)
         cards_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10)
+
         hands_index = 0
-        self.card_buttons_dict = {}
+        self.hand_buttons_dict = {}
         self.total_combinations = 0
+
         for row in range (13):
             for col in range (13):
-                hand_button_pre_name = main_dict['hands'][hands_index]
+                hand_button_pre_name = cards_and_hands_dict['hands'][hands_index]
                 hand_button_n_combos = len(cards_and_hands_dict['combinations'][hand_button_pre_name])
                 hand_button_name = f'{hand_button_pre_name}\n{hand_button_n_combos}'
                 original_color = '#FFE7B5' if 's' in hand_button_name else '#E7EFF7' if 'o' in hand_button_name else '#CFDFC7'
 
                 hand_button = self.range_buttons[row][col] = tkinter.Button(cards_frame, width = 5, bg = original_color, text = hand_button_name)
                 hand_button.grid(row = row, column = col)
+
                 if hand_button_n_combos == 0:
                     hand_button['state'] = 'disabled'
                 hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, original_color = original_color: self.select_hand(hand_button, hand_button_pre_name, original_color, street_name['text']))
 
-                self.card_buttons_dict[hand_button_pre_name] = (hand_button, original_color)
+                self.hand_buttons_dict[hand_button_pre_name] = (hand_button, original_color)
                 hands_index += 1
                 self.total_combinations += hand_button_n_combos
         
-    def creates_auxiliary_buttons(self, master, row, column, caller_button, street):
-        """Cria os botões auxiliares de cor, limpar e próximo slot"""
+    def creates_auxiliary_buttons(self, master: object, row: str, column:str, caller_button: object, street:str):
+        """Creates auxiliary color buttons, clear and next slot"""
 
         self.row = row
         self.column = column
         self.caller_button = caller_button
         self.street = street
+
+        global range_dict
 
         frame_auxiliary = tkinter.Frame(master)
         frame_auxiliary.grid(row = self.row, column = self.column, padx = 5)
@@ -575,7 +587,7 @@ class WindowRangeSelection:
         button_clear = tkinter.Button(frame_auxiliary, text = 'Limpar', command = lambda: self.clear_hands(self.caller_button))
         button_clear.grid(padx = 5, pady = 20)
 
-        for key, value in main_dict['streets'][street][caller_button]['range_detail'].items():
+        for key, value in range_dict[street][caller_button]['range_detail'].items():
             color_button = tkinter.Button(frame_auxiliary, width = 4, text = key, bg =  value['color'])
             color_button.grid(pady = 5)
             color_button.config(command = lambda key = key: self.pick_color(key, self.current_street))

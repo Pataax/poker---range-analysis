@@ -2,7 +2,7 @@ import tkinter, pytest
 from tkinter import Tk
 
 from pprint import pprint
-from app import PokerRangeAnalysis, WindowCardSelection
+from app import PokerRangeAnalysis, WindowCardSelection, WindowRangeSelection
 
 
 
@@ -18,6 +18,11 @@ def test_gui_creation_window_card_selection():
     button_test = tkinter.Button()
     entry_test = tkinter.Entry()
     wcs = WindowCardSelection('Hero', button_test, entry_test)
+
+def test_gui_creation_window_range_selection():
+    global wrs
+    button_test = tkinter.Button()
+    wrs = WindowRangeSelection(button_test, 'F1')
 
 
 # window card selection
@@ -72,3 +77,6 @@ def re_add_combos_one_card():
     for hand in foo:
         for combo in foo[hand]:
             assert 'Qs' not in combo
+
+
+# window range selection
