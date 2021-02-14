@@ -19,10 +19,14 @@ def test_gui_creation_window_card_selection():
     entry_test = tkinter.Entry()
     wcs = WindowCardSelection('Hero', button_test, entry_test)
 
-def test_gui_creation_window_range_selection():
-    global wrs
-    button_test = tkinter.Button()
-    wrs = WindowRangeSelection(button_test, 'F1')
+def test_creates_frame_streets_buttons():
+    master = tkinter.Frame()
+    foo = pk.creates_frame_streets_buttons(master, 'Pré-Flop', 2, 'PF', 0, 0)
+
+# def test_gui_creation_window_range_selection():
+#     global wrs
+#     button_test = tkinter.Button()
+#     wrs = WindowRangeSelection(button_test, 'PF1')
 
 
 # window card selection
@@ -80,3 +84,10 @@ def re_add_combos_one_card():
 
 
 # window range selection
+# def test_creates_auxiliary_buttons():
+#     master = tkinter.Frame()
+#     foo = wrs.creates_auxiliary_buttons(master, 0, 0, 'F1', 'Flop')
+#     bar = []
+#     for key in foo:
+#         bar.append(key)
+#         assert bar == ['F1']
