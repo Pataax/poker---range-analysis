@@ -750,17 +750,29 @@ class WindowRangeSelection:
 
         elif current_color_button_name and hand_button['bg']: #já estava selecionado com outra cor 
             # identifica a cor anterior
-            path = range_dict[street][caller_button]['range_detail']
-            for color_button in path:
-                if hand_button['bg'] == path[color_button]['color']:
-                    print(color_button)
+            old_path = range_dict[street][caller_button]['range_detail']
+            for color_button in old_path:
+                if hand_button['bg'] == old_path[color_button]['color']:
+                    old_color = color_button
 
-            # altera para a cor atual e altera os dicionários
+            # altera para a cor atual e atualiza os dicionários
             hand_button['bg'] = range_dict[street][caller_button]['range_detail'][current_color_button_name]['color']
 
-            path = range_dict[street][caller_button]['range_detail'][color_button]
-            path['label']['text'] -= len(cards_and_hands_dict['combinations'][hand_button_name])
-            path['selected_range'].remove(hand_button_name)
+            old_path[old_color]['label']['text'] -= len(cards_and_hands_dict['combinations'][hand_button_name])
+            old_path[old_color]['selected_range'].remove(hand_button_name)
+
+            new_path = range_dict[street][caller_button]['range_detail'][current_color_button_name]
+            new_path['label']['text'] += len(cards_and_hands_dict['combinations'][hand_button_name])
+
+            if 'selected_range' not in new_path:
+                new_path['selected_range'] = []
+
+                if hand_button_name not in new_path['selected_range']:
+                    new_path['selected_range'].append(hand_button_name)
+
+            elif hand_button_name not in new_path['selected_range']:
+                new_path['selected_range'].append(hand_button_name)
+
         
 
     def pick_color(self, color_button_name:object, street:str, caller_button:str):
