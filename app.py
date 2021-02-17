@@ -585,7 +585,7 @@ class WindowRangeSelection:
                 hands_index += 1
                 total_combinations += hand_button_n_combos
         
-    def creates_auxiliary_buttons(self, master: object, row: str, column:str, caller_button: object, street:str):
+    def creates_auxiliary_buttons(self, master: object, row: str, column:str, caller_button: str, street:str):
         """Creates auxiliary color buttons, clear and next slot"""
 
         self.row = row
@@ -612,8 +612,11 @@ class WindowRangeSelection:
             value['button'] = color_button
             value['label'] = range_color_label
 
-        next_slot_button = tkinter.Button(frame_auxiliary, text = 'Próximo Slot', command = lambda: self.next_slot_click(self.range_window, self.caller_button))
+        next_slot_button = tkinter.Button(frame_auxiliary, text = 'Próximo Slot', command = lambda caller_button = caller_button, street = street: self.next_slot_click(self.range_window, caller_button, street))
         next_slot_button.grid(pady = 30)
+
+        if caller_button == 'R3':
+            next_slot_button['state'] = 'disabled'
 
         return range_dict[street]
 
@@ -773,8 +776,6 @@ class WindowRangeSelection:
             elif hand_button_name not in new_path['selected_range']:
                 new_path['selected_range'].append(hand_button_name)
 
-        
-
     def pick_color(self, color_button_name:object, street:str, caller_button:str):
         global current_color_button_name, range_dict
 
@@ -806,22 +807,38 @@ class WindowRangeSelection:
             path[color_button_name]['button']['relief'] = 'raised'
         current_color_button_name = ''
 
-    def next_slot_click(self, top_level:object, caller_button:object):
-        self.ok_button_click(top_level, caller_button)
+    def next_slot_click(self, top_level:object, caller_button:object, street:str):
+        global range_dict
 
-        # encontra a próxima street
-        streets_buttons_list = list(streets_ranges_control)
-        next_button = streets_buttons_list[streets_buttons_list.index(caller_button['text']) + 1]
+        self.ok_button_click(top_level, caller_button, street)
+
+        # encontra a proxima street e o proximo botao de range
+        streets_buttons_list = {}
+        for s in range_dict:
+            streets_buttons_list[s] = list(range_dict[s])
+
+        for s in streets_buttons_list:
+            if caller_button in streets_buttons_list[s]:
+                try:
+                    next_button_name = streets_buttons_list[s][streets_buttons_list[s].index(caller_button) + 1]
+                    next_street = s
+                    next_button = range_dict[next_street][next_button_name]['caller_button']
+                except IndexError:
+                    next_street = list(streets_buttons_list)[list(streets_buttons_list).index(s) + 1]
+                    next_button_name = streets_buttons_list[next_street][0]
+                    next_button = range_dict[next_street][next_button_name]['caller_button']
+        
 
         # copia os ranges da street atual para a proxima street
-        old_path = streets_ranges_control[caller_button['text']]['range_detail']
-        new_path = streets_ranges_control[next_button]['range_detail']
+        old_path = range_dict[street][caller_button]['range_detail']
+        new_path = range_dict[next_street][next_button_name]['range_detail']
+
         for key in old_path:
             if 'selected_range' in old_path[key]:
                 new_path[key]['selected_range'] = old_path[key]['selected_range']
-
+        
         # abre a janela da proxima street
-        WindowRangeSelection(streets_ranges_control[next_button]['caller_button'])
+        WindowRangeSelection(next_button, next_street)
 
 
 if __name__ == '__main__':
