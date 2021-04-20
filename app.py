@@ -531,7 +531,7 @@ class WindowCardSelection:
 
 
 class WindowRangeSelection:
-    '''Creates a window for selecting Flop, Turn and River ranges'''
+    '''Creates a window for selecting Pré-Flop, Flop, Turn and River ranges'''
 
     def __init__(self, caller_button:object, street:str) -> object:
         global select_hands_total_combo, total_combinations
