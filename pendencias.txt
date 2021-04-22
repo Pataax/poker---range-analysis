@@ -1,0 +1,2 @@
+1 - Não bloquear somente as cartas fora do PF1 e sim da street anterior
+2 - Colocar opção de pular para proxima street ao invés de apenas próximo slot (ex: F2 para T1)

@@ -172,9 +172,9 @@ class PokerRangeAnalysis:
             range_dict[street][button_name] = {
                 'caller_button': button, 
                 'range_detail': {
-                    'RF+': {'color': '#B2301E'}, 'RFF': {'color' : '#BE6EAE'}, 'RF-': {'color': '#EA8376'}, 
-                    'RM+': {'color': '#4572A9'}, 'RM-': {'color': '#81ACDF'}, 'RF': {'color': '#E8950F'},
-                    'RF-': {'color': '#FFCD69'}, 'SPLIT': {'color': '#27A2A1'}
+                    'FT1': {'color': '#B2301E'}, 'FT2': {'color' : '#BE6EAE'}, 'FT3': {'color': '#EA8376'}, 
+                    'M1': {'color': '#4572A9'}, 'M2': {'color': '#81ACDF'}, 'RC': {'color': '#E8950F'},
+                    'SPLIT': {'color': '#27A2A1'}
                 }
             }
         return range_dict[street]
@@ -189,7 +189,7 @@ class PokerRangeAnalysis:
         global streets_labels_dict
 
         title_dict = {
-            'equity': ['Range\n(mãos)', 'Eq. Vilão\n(%)', 'Eq. Hero\n(%)', 'Split\n(%)'],
+            'equity': ['Range\n(mãos)', 'Eq. Hero\n(%)', 'Eq. Vilao\n(%)', 'Split\n(%)'],
             'fold_equity': ['FE/Block\n(mãos)', 'FE/Block\n(%)', 'Cbet\n(%)'],
         }
         
@@ -547,6 +547,14 @@ class WindowRangeSelection:
         self.range_window.wm_resizable('false', 'false')
         self.range_window.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click(self.range_window, self.caller_button, self.street))
 
+        # extracts the range of PF1. Está repetindo o check_range_pre_selected, precisa otimizar!
+        self.PF1_range = []
+        path = range_dict['Pré-Flop']['PF1']['range_detail']
+        for key, value in path.items():
+            if 'selected_range' in path[key] and path[key]['selected_range']:
+                for hand in value['selected_range'][:]:
+                    self.PF1_range.append(hand)
+
         self.create_hand_buttons_matrix(self.range_window, 0, 0, caller_button)
         self.creates_auxiliary_buttons(self.range_window, 0, 1, self.caller_button['text'], self.street)
         self.creates_space_comments(self.range_window, 2, 0)
@@ -559,7 +567,7 @@ class WindowRangeSelection:
         self.street_name = street_name
         self.range_buttons = [[None for x in range(13)] for x in range (13)]
 
-        global select_hands_total_combo, total_combinations
+        global select_hands_total_combo, total_combinations, range_dict
 
         cards_frame = tkinter.Frame(master)
         cards_frame.grid(row = self.row, column = self.column, padx = 10, pady = 10)
@@ -580,11 +588,16 @@ class WindowRangeSelection:
                 if hand_button_n_combos == 0:
                     hand_button['state'] = 'disabled'
                 hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, original_color = original_color: self.select_hand(hand_button, hand_button_pre_name, original_color, street_name['text'], self.street))
+                
+                if self.caller_button['text'] != "PF1":
+                    if hand_button_pre_name not in self.PF1_range:
+                        hand_button['state'] = 'disabled'
+                        hand_button['bg'] = '#bdbdbd'
 
                 self.hand_buttons_dict[hand_button_pre_name] = (hand_button, original_color)
                 hands_index += 1
                 total_combinations += hand_button_n_combos
-        
+
     def creates_auxiliary_buttons(self, master: object, row: str, column:str, caller_button: str, street:str):
         """Creates auxiliary color buttons, clear and next slot"""
 
@@ -678,15 +691,15 @@ class WindowRangeSelection:
                     split = path[key]['label']['text']
 
                 # range medio
-                if key in ['RM+', 'RM-']:
+                if key in ['M1', 'M2']:
                     range_medio += path[key]['label']['text']
                 
                 #range fraco
-                if key == 'RF':
+                if key == 'RC':
                     range_fraco = path[key]['label']['text']
 
                 # range forte
-                if key in ['RF+', 'RFF', 'RF-']:
+                if key in ['FT1', 'FT2', 'FT3']:
                     range_forte += path[key]['label']['text']
 
                 streets_labels_dict[f'{caller_button}_Split']['text'] = f'{(split / select_hands_total_combo) * 100:.2f}%'
@@ -700,6 +713,7 @@ class WindowRangeSelection:
 
         top_level.destroy()
         range_dict[street][caller_button]['caller_button']['state'] = 'active'
+        # pprint(range_dict[street][caller_button]['range_detail'])
 
     def cancel_button_click(self, top_level:object, caller_button:str, street:str):
         global range_dict
@@ -715,6 +729,8 @@ class WindowRangeSelection:
         if current_color_button_name: # apenas se alguma cor estiver selecionada
             path = range_dict[street][caller_button]['range_detail'][current_color_button_name]
 
+
+        # se a mão não estiver selecionada
         if current_color_button_name and hand_button['bg'] == original_color:
             hand_button['bg'] = path['color']
 
@@ -741,8 +757,9 @@ class WindowRangeSelection:
             # else:
             #     path['combo_color_range'] = path['label']['text']
 
+        # quando quer desselecionar a mão (elá esta com a cor do botão selecionado)
         elif current_color_button_name and hand_button['bg'] == path['button']['bg']:
-            hand_button.config(bg = original_color)
+            hand_button.config(bg = original_color) 
 
             select_hands_total_combo -= len(cards_and_hands_dict['combinations'][hand_button_name])
             percentual = (select_hands_total_combo / total_combinations) * 100
@@ -750,6 +767,8 @@ class WindowRangeSelection:
             
             path['label']['text'] -= len(cards_and_hands_dict['combinations'][hand_button_name])
             path['selected_range'].remove(hand_button_name)
+            # print(range_dict['Pré-Flop']['PF1']['range_detail']['FT1'])
+            # print(path)
 
         elif current_color_button_name and hand_button['bg']: #já estava selecionado com outra cor 
             # identifica a cor anterior
@@ -835,7 +854,7 @@ class WindowRangeSelection:
 
         for key in old_path:
             if 'selected_range' in old_path[key]:
-                new_path[key]['selected_range'] = old_path[key]['selected_range']
+                new_path[key]['selected_range'] = old_path[key]['selected_range'][:] # não pode esquecer de criar uma COPIA da lista
         
         # abre a janela da proxima street
         WindowRangeSelection(next_button, next_street)
