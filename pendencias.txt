@@ -1,2 +1,8 @@
-1 - Não bloquear somente as cartas fora do PF1 e sim da street anterior
-2 - Colocar opção de pular para proxima street ao invés de apenas próximo slot (ex: F2 para T1)
+Não bloquear somente as cartas fora do PF1 e sim da street anterior
+---------------------------------------------------------------------------------------------------
+Colocar opção de pular para proxima street ao invés de apenas próximo slot (ex: F2 para T1)
+selecionar a aba da street atual após clicar em "next slot"
+Setar a posição das janelas e das subjanelas
+separar e melhorar o calculo de equidade
+criar opção pra pintar todo o range de uma cor de forma rapida e facil
+pintar as cartas da janela "select cards"

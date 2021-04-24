@@ -547,13 +547,13 @@ class WindowRangeSelection:
         self.range_window.wm_resizable('false', 'false')
         self.range_window.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click(self.range_window, self.caller_button, self.street))
 
-        # extracts the range of PF1. Está repetindo o check_range_pre_selected, precisa otimizar!
-        self.PF1_range = []
-        path = range_dict['Pré-Flop']['PF1']['range_detail']
+        # cria uma lista simples com as mãos do range atual para ser utilizada no create_hands_buttons e bloquear as mãos fora do range
+        self.current_range = []
+        path = range_dict[street][caller_button['text']]['range_detail']
         for key, value in path.items():
             if 'selected_range' in path[key] and path[key]['selected_range']:
                 for hand in value['selected_range'][:]:
-                    self.PF1_range.append(hand)
+                    self.current_range.append(hand)
 
         self.create_hand_buttons_matrix(self.range_window, 0, 0, caller_button)
         self.creates_auxiliary_buttons(self.range_window, 0, 1, self.caller_button['text'], self.street)
@@ -590,7 +590,7 @@ class WindowRangeSelection:
                 hand_button.config(command = lambda hand_button = hand_button, hand_button_pre_name = hand_button_pre_name, original_color = original_color: self.select_hand(hand_button, hand_button_pre_name, original_color, street_name['text'], self.street))
                 
                 if self.caller_button['text'] != "PF1":
-                    if hand_button_pre_name not in self.PF1_range:
+                    if hand_button_pre_name not in self.current_range:
                         hand_button['state'] = 'disabled'
                         hand_button['bg'] = '#bdbdbd'
 
@@ -704,16 +704,15 @@ class WindowRangeSelection:
 
                 streets_labels_dict[f'{caller_button}_Split']['text'] = f'{(split / select_hands_total_combo) * 100:.2f}%'
                 streets_labels_dict[f'{caller_button}_Eq_Hero']['text'] = f'{((range_fraco + range_medio / 2 )/ select_hands_total_combo) * 100:.2f}%'
-                streets_labels_dict[f'{caller_button}_Eq_Vilão']['text'] = f'{((range_forte + range_medio / 2) / select_hands_total_combo) * 100:.2f}%'
+                streets_labels_dict[f'{caller_button}_Eq_Vilao']['text'] = f'{((range_forte + range_medio / 2) / select_hands_total_combo) * 100:.2f}%'
         else: 
                 streets_labels_dict[f'{caller_button}_Range_(mãos)']['text'] = ''
                 streets_labels_dict[f'{caller_button}_Split']['text'] = ''
                 streets_labels_dict[f'{caller_button}_Eq_Hero']['text'] = ''
-                streets_labels_dict[f'{caller_button}_Eq_Vilão']['text'] = ''
+                streets_labels_dict[f'{caller_button}_Eq_Vilao']['text'] = ''
 
         top_level.destroy()
         range_dict[street][caller_button]['caller_button']['state'] = 'active'
-        # pprint(range_dict[street][caller_button]['range_detail'])
 
     def cancel_button_click(self, top_level:object, caller_button:str, street:str):
         global range_dict
@@ -829,12 +828,29 @@ class WindowRangeSelection:
     def next_slot_click(self, top_level:object, caller_button:object, street:str):
         global range_dict
 
-        self.ok_button_click(top_level, caller_button, street)
+        self.ok_button_click(top_level, caller_button, street) # calcula a equidade e fecha a janela
 
-        # encontra a proxima street e o proximo botao de range
+        next_street, next_button_name, next_button  = self.find_next_slot(caller_button, street)
+
+        # copia os ranges da street atual para a proxima street
+        old_path = range_dict[street][caller_button]['range_detail']
+        new_path = range_dict[next_street][next_button_name]['range_detail']
+        
+
+        for key in old_path:
+            if 'selected_range' in old_path[key]:
+                new_path[key]['selected_range'] = old_path[key]['selected_range'][:] # não pode esquecer de criar uma COPIA da lista
+        
+
+        # abre a janela da proxima street
+        WindowRangeSelection(next_button, next_street)
+
+    def find_next_slot(self, caller_button:object, street: str):
+        '''identifica qual a street/botão atual e a próxima street/botao'''
+
         streets_buttons_list = {}
-        for s in range_dict:
-            streets_buttons_list[s] = list(range_dict[s])
+        for s in range_dict: # extrai as keys do dicionario principal
+            streets_buttons_list[s] = list(range_dict[s]) # gera a lista só com as keys (nomes das streets)
 
         for s in streets_buttons_list:
             if caller_button in streets_buttons_list[s]:
@@ -846,18 +862,8 @@ class WindowRangeSelection:
                     next_street = list(streets_buttons_list)[list(streets_buttons_list).index(s) + 1]
                     next_button_name = streets_buttons_list[next_street][0]
                     next_button = range_dict[next_street][next_button_name]['caller_button']
-        
 
-        # copia os ranges da street atual para a proxima street
-        old_path = range_dict[street][caller_button]['range_detail']
-        new_path = range_dict[next_street][next_button_name]['range_detail']
-
-        for key in old_path:
-            if 'selected_range' in old_path[key]:
-                new_path[key]['selected_range'] = old_path[key]['selected_range'][:] # não pode esquecer de criar uma COPIA da lista
-        
-        # abre a janela da proxima street
-        WindowRangeSelection(next_button, next_street)
+        return next_street, next_button_name, next_button
 
 
 if __name__ == '__main__':
