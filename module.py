@@ -35,9 +35,9 @@ color_button_control = {
 
 # creates the four cards selection windows
 
-csw_owners = {
-    'hero': {'entry': ''}, 
-    'flop': {'entry': ''}, 
-    'turn': {'entry': ''}, 
-    'river': {'entry': ''}
-    }
+# csw_owners = {
+#     'hero': {'entry': ''}, 
+#     'flop': {'entry': ''}, 
+#     'turn': {'entry': ''}, 
+#     'river': {'entry': ''}
+#     }

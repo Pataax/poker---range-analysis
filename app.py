@@ -2,7 +2,7 @@ import tkinter
 from tkinter import ttk
 from pprint import pprint
 from module import naipes_list, cards_matrix, hands, default_color_buttons, \
-    color_button_control, csw_owners
+    color_button_control
 
 
 class PokerRangeAnalysis:
@@ -10,6 +10,8 @@ class PokerRangeAnalysis:
         self.root = tkinter.Tk()
         self.root.wm_resizable(False, False) # block window resize
         self.root.title('Poker Range Analysis')
+        
+        self.entries = {}
         self.create_tabs_layout()
         self.creates_cards_seletion_frame(self.root, 1, 0)
 
@@ -165,24 +167,28 @@ class PokerRangeAnalysis:
 
             cards_entry = tkinter.Entry(frame, width = 8)
             cards_entry.grid(row = 0, column = 1, padx = 5)
-            csw_owners[owner_cards]['entry'] = cards_entry
+            self.entries[owner_cards] = cards_entry
 
             choose_cards_button = tkinter.Button(frame, image = img_cards)
             choose_cards_button.image = img_cards  # Keep a reference
             choose_cards_button.grid(row = 0, column = 2, padx = 5, pady = 5)
             choose_cards_button.config(command = lambda owner_cards = owner_cards, 
-                cards_entry = cards_entry: csw_owners[owner_cards]['toplevel'].show())
+                cards_entry = cards_entry: csw_owners[owner_cards].show())
 
             clear_button = tkinter.Button(frame, image = img_clear)
             clear_button.image = img_clear  # keep a reference
             clear_button.grid(row = 0, column = 3)
+            clear_button.config(command = lambda owner_cards = owner_cards: self.clear_button_click(owner_cards))
 
     def show(self):
         self.root.mainloop()
 
-    def fill_cards_entry(self, cards_text, owner_cards):
-        csw_owners[owner_cards]['entry'].delete(0, 'end')
-        csw_owners[owner_cards]['entry'].insert(0, cards_text)
+    def fill_cards_entry(self, owner, cards_text, owner_cards):
+        self.entries[owner].delete(0, 'end')
+        self.entries[owner].insert(0, cards_text)
+
+    def clear_button_click(self, owner):
+        self.entries[owner].delete(0, 'end')
 
 
 class CardSelectionWindow:
@@ -220,13 +226,14 @@ class CardSelectionWindow:
         self.ok_button.grid(row = 1, column = 0, pady = (5, 10))
 
         cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6)
+        cancel_button.config(command = lambda: self.cancel_button_click())
         cancel_button.grid(row = 1, column = 1, pady = (5, 10))     
 
     def block_used_cards(self):
         blocked_cards = []
         for ow in csw_owners:
             if ow != self.owner: # all owners except the current one
-                for card in csw_owners[ow]['toplevel'].selected_cards:
+                for card in csw_owners[ow].selected_cards:
                     blocked_cards.append(card)
         
         for card in self.cards_dict:
@@ -250,9 +257,9 @@ class CardSelectionWindow:
     
     def ok_button_click(self):
         cards_text = ''
-        for c in csw_owners[self.owner]['toplevel'].selected_cards:
+        for c in csw_owners[self.owner].selected_cards:
             cards_text += c
-        app.fill_cards_entry(cards_text, self.owner)
+        app.fill_cards_entry(self.owner, cards_text, self.owner)
         self.wcs.withdraw()
 
     def cancel_button_click(self):
@@ -347,7 +354,7 @@ class Cards:
         return card_button
     
     def card_button_click(self, card_button):
-        self.card_window = csw_owners[self.owner]['toplevel'] # card selection window
+        self.card_window = csw_owners[self.owner] # card selection window
         qtd = self.card_window.get_len_cards()
 
         if card_button['bg'] == 'SystemButtonFace':
@@ -421,10 +428,8 @@ class Hands:
 app = PokerRangeAnalysis()
 
 # add topleves to the dicionary created earlier (module.py)
-csw_owners['hero']['toplevel'] = CardSelectionWindow('hero')
-csw_owners['flop']['toplevel'] = CardSelectionWindow('flop')
-csw_owners['turn']['toplevel'] = CardSelectionWindow('turn')
-csw_owners['river']['toplevel'] = CardSelectionWindow('river')
+csw_owners = {'hero': CardSelectionWindow('hero'), 'flop': CardSelectionWindow('flop'), 
+    'turn': CardSelectionWindow('turn'), 'river': CardSelectionWindow('river'), }
 
 # creates the range selection window for each street
 rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf2'), 
@@ -432,9 +437,8 @@ rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf
     't1': RangeSelectionWindow('t1'), 't2': RangeSelectionWindow('t2'), 't3': RangeSelectionWindow('t3'), 
     'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
-csw_owners['hero']['toplevel'].selected_cards
 
-pf1_selected_color = ''
+pf_selected_color = ''
 
 
 if __name__ == '__main__':
