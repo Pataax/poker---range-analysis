@@ -26,7 +26,18 @@ default_color_buttons = {
 
 color_button_control = {
     'pf1': {'buttons': [], 'color': ''}, 'pf2': {'buttons': [], 'color': ''}, 
-    'f1': {'buttons': [], 'color': ''}, 'f2': {'buttons': [], 'color': ''}, 'f3': {'buttons': [], 'color': ''}, 
-    't1': {'buttons': [], 'color': ''}, 't2': {'buttons': [], 'color': ''}, 't3': {'buttons': [], 'color': ''},
-    'r1': {'buttons': [], 'color': ''}, 'r2': {'buttons': [], 'color': ''}, 'r3': {'buttons': [], 'color': ''}, 
+    'f1': {'buttons': [], 'color': ''}, 'f2': {'buttons': [], 'color': ''}, 
+    'f3': {'buttons': [], 'color': ''}, 't1': {'buttons': [], 'color': ''}, 
+    't2': {'buttons': [], 'color': ''}, 't3': {'buttons': [], 'color': ''},
+    'r1': {'buttons': [], 'color': ''}, 'r2': {'buttons': [], 'color': ''}, 
+    'r3': {'buttons': [], 'color': ''}, 
 }
+
+# creates the four cards selection windows
+
+csw_owners = {
+    'hero': {'entry': ''}, 
+    'flop': {'entry': ''}, 
+    'turn': {'entry': ''}, 
+    'river': {'entry': ''}
+    }
