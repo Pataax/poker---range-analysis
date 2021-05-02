@@ -189,6 +189,10 @@ class PokerRangeAnalysis:
 
     def clear_button_click(self, owner):
         self.entries[owner].delete(0, 'end')
+        
+        for card_name in csw_owners[owner].selected_cards[:]:
+            card_instance = csw_owners[owner].cards_dict[card_name]
+            card_instance.deselect_card()
 
 
 class CardSelectionWindow:
@@ -214,20 +218,19 @@ class CardSelectionWindow:
         
         for row in range(4):
             for col in range(13):
-                card_button_name = cards_matrix[row][col]
-                card_button_color = naipes_list[row][1]
-                card_button = Cards(self.owner, card_button_name, card_button_color, cards_frame, 
-                    row, col).create_card_button()
-                self.cards_dict[card_button_name] = card_button
+                card_name = cards_matrix[row][col]
+                card_color = naipes_list[row][1]
+                card_instance = Cards(self.owner, card_name, card_color, cards_frame, 
+                    row, col)
+                self.cards_dict[card_name] = card_instance
         
-
         self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled')
         self.ok_button.config(command = lambda: self.ok_button_click())
         self.ok_button.grid(row = 1, column = 0, pady = (5, 10))
 
         cancel_button = tkinter.Button(main_frame, text = 'Cancel', width = 6)
         cancel_button.config(command = lambda: self.cancel_button_click())
-        cancel_button.grid(row = 1, column = 1, pady = (5, 10))     
+        cancel_button.grid(row = 1, column = 1, pady = (5, 10))
 
     def block_used_cards(self):
         blocked_cards = []
@@ -236,12 +239,12 @@ class CardSelectionWindow:
                 for card in csw_owners[ow].selected_cards:
                     blocked_cards.append(card)
         
-        for card in self.cards_dict:
-            if card in blocked_cards:
-                self.cards_dict[card]['state'] = 'disabled'
-            elif self.cards_dict[card]['state'] == 'disabled':
-                self.cards_dict[card]['state'] = 'normal'
-        
+        for card_key in self.cards_dict:
+            if card_key in blocked_cards:
+                self.cards_dict[card_key].disable_card_button()
+            elif self.cards_dict[card_key].get_card_button_state() == 'disabled':
+                self.cards_dict[card_key].normalize_card_button()
+                   
     def show(self):
         self.block_used_cards()
         self.wcs.deiconify()
@@ -345,30 +348,35 @@ class Cards:
         self.frame = frame
         self.row = row
         self.column = column
+        self.button = self.create_button() # stores each button created
 
-    def create_card_button(self):
+    def create_button(self):
         card_button = tkinter.Button(self.frame, width = 2, heigh = 2, 
             text = self.card_name, fg = self.card_color)
         card_button.config(command = lambda: self.card_button_click(card_button))
         card_button.grid(row = self.row, column = self.column)
         return card_button
-    
+
+    def get_card_button_state(self):
+        state = self.button['state']
+        return state
+
     def card_button_click(self, card_button):
         self.card_window = csw_owners[self.owner] # card selection window
         qtd = self.card_window.get_len_cards()
 
         if card_button['bg'] == 'SystemButtonFace':
             if self.owner == 'hero' and qtd < 2:
-                self.select_card(card_button)
+                self.select_card()
             elif self.owner == 'flop' and qtd < 3:
-                self.select_card(card_button)
+                self.select_card()
             elif (self.owner == 'turn' or self.owner == 'river') and qtd == 0:
-                self.select_card(card_button)
+                self.select_card()
         else:
-            self.deselect_card(card_button)
+            self.deselect_card()
 
-    def select_card(self, card_button):
-        card_button['bg'] = 'gray'
+    def select_card(self):
+        self.button['bg'] = 'gray'
         self.card_window.selected_cards.append(self.card_name)
 
         qtd = self.card_window.get_len_cards()
@@ -380,8 +388,8 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
 
-    def deselect_card(self, card_button):
-        card_button['bg'] = 'SystemButtonFace'
+    def deselect_card(self):
+        self.button['bg'] = 'SystemButtonFace'
         self.card_window.selected_cards.remove(self.card_name)
 
         qtd = self.card_window.get_len_cards()
@@ -392,6 +400,12 @@ class Cards:
             self.card_window.disable_ok_button()
         elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
             self.card_window.disable_ok_button()
+
+    def normalize_card_button(self):
+        self.button['state'] = 'normal'
+
+    def disable_card_button(self):
+        self.button['state'] = 'disabled'
 
 
 class Hands:
@@ -437,9 +451,7 @@ rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf
     't1': RangeSelectionWindow('t1'), 't2': RangeSelectionWindow('t2'), 't3': RangeSelectionWindow('t3'), 
     'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
-
 pf_selected_color = ''
-
 
 if __name__ == '__main__':
     app.show()
