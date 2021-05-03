@@ -1,4 +1,4 @@
-import tkinter
+import tkinter, threading
 from tkinter import ttk
 from pprint import pprint
 from module import naipes_list, cards_matrix, hands, default_color_buttons, \
@@ -197,7 +197,7 @@ class PokerRangeAnalysis:
 
     def show(self):
         self.root.mainloop()
-
+        
 
 class CardSelectionWindow:
     def __init__(self, owner_cards):
@@ -373,15 +373,15 @@ class Cards:
 
         if self.button['bg'] == 'SystemButtonFace':
             if self.owner == 'hero' and qtd < 2:
-                self.select_card()
+                return self.select_card()
             elif self.owner == 'flop' and qtd < 3:
-                self.select_card()
+                return self.select_card()
             elif (self.owner == 'turn' or self.owner == 'river') and qtd == 0:
-                self.select_card()
+                return self.select_card()
         else:
-            self.deselect_card()
-
-        return 'the card button was clicked'
+            return self.deselect_card()
+        
+        return 'passou direto'
 
     def select_card(self):
         self.card_window = csw_owners[self.owner] # card selection window
@@ -397,7 +397,7 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
 
-        return 'the card was selected'
+        return csw_owners['hero'].selected_cards
 
     def deselect_card(self):
         self.button['bg'] = 'SystemButtonFace'
@@ -411,6 +411,8 @@ class Cards:
             self.card_window.disable_ok_button()
         elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
             self.card_window.disable_ok_button()
+        
+        return csw_owners['hero'].selected_cards
 
     def normalize_card_button(self):
         self.button['state'] = 'normal'
@@ -463,7 +465,6 @@ rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf
     'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
 pf_selected_color = ''
-
 
 if __name__ == '__main__':
     app.show()
