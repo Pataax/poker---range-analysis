@@ -11,9 +11,11 @@ class PokerRangeAnalysis:
         self.root.wm_resizable(False, False) # block window resize
         self.root.title('Poker Range Analysis')
         
-        self.entries = {}
+        self.card_selection_entries = {}
+        self.widgets = {}
+        
         self.create_tabs_layout()
-        self.creates_cards_seletion_frame(self.root, 1, 0)
+        self.creates_cards_selection_frame(self.root, 1, 0)
 
     def create_tabs_layout(self):
         tabs_control = ttk.Notebook(self.root)
@@ -111,14 +113,14 @@ class PokerRangeAnalysis:
             'Turn': {'tab_name': 't', 'qtd': 3}, 'River': {'tab_name': 'r', 'qtd': 3}}
 
         for street in street_tabs_structure:
-            main_frame = tkinter.Frame()
+            main_frame = tkinter.Frame(self.root)
             path = street_tabs_structure[street]
             self.creates_slot_buttons(main_frame, street , path['qtd'], path['tab_name'], 0, 0)
             self.creates_equity_frame(main_frame, path['qtd'], 'equity', 0, 1)
             self.creates_equity_frame(main_frame, path['qtd'], 'fold_equity', 0, 2)
             tabs_control.add(main_frame, text = street)
     
-    def creates_slot_buttons(self, frame, street, qtd, abbreviation:str, row, column):
+    def creates_slot_buttons(self, frame, street, qtd, abbreviation, row, column):
         buttons_frame = tkinter.Frame(frame)
         buttons_frame.grid(row = row, column = column, sticky = 's', ipady = 7)
 
@@ -129,7 +131,7 @@ class PokerRangeAnalysis:
             :rsw_slots[slot_name].show())
             slot_button.grid(row = n, column = 0, padx = 5, pady = 5, sticky = 's')
 
-    def creates_equity_frame(self, frame, entry_rows:str, equity_type:str, frame_row, frame_column):
+    def creates_equity_frame(self, frame, entry_rows, equity_type, frame_row, frame_column):
         '''creates the equity and fold equity frames on each street'''
         
         equity_labels_dict = {
@@ -148,13 +150,13 @@ class PokerRangeAnalysis:
                 false_label = tkinter.Label(equity_frame, width = 8, relief = 'groove', bg = 'white')
                 false_label.grid(row = x + 1, column = i, padx = 5, pady = 7)
 
-    def creates_cards_seletion_frame(self, frame, row, column):
+    def creates_cards_selection_frame(self, frame, row, column):
         main_frame = tkinter.Frame(frame, padx = 5, pady = 5, bd = 2, relief = 'groove')
         main_frame.grid(row = row, column = column, padx = 10, pady = 10, columnspan = 3)
 
         list_labels = ['hero', 'flop', 'turn', 'river']
-        img_cards = tkinter.PhotoImage(file = 'icons/card_selection.png')
-        img_clear = tkinter.PhotoImage(file = 'icons/button_clear.png')
+        img_cards = tkinter.PhotoImage(file = "icons\\card_selection.png", master = main_frame)
+        img_clear = tkinter.PhotoImage(file = "icons\\button_clear.png", master = main_frame)
 
         for i in range(len(list_labels)):
             owner_cards = list_labels[i]
@@ -167,32 +169,34 @@ class PokerRangeAnalysis:
 
             cards_entry = tkinter.Entry(frame, width = 8)
             cards_entry.grid(row = 0, column = 1, padx = 5)
-            self.entries[owner_cards] = cards_entry
+            self.card_selection_entries[owner_cards] = cards_entry
 
             choose_cards_button = tkinter.Button(frame, image = img_cards)
             choose_cards_button.image = img_cards  # Keep a reference
             choose_cards_button.grid(row = 0, column = 2, padx = 5, pady = 5)
             choose_cards_button.config(command = lambda owner_cards = owner_cards, 
                 cards_entry = cards_entry: csw_owners[owner_cards].show())
+            self.widgets[owner_cards] = {}
+            self.widgets[owner_cards]['card_selection'] = choose_cards_button
 
             clear_button = tkinter.Button(frame, image = img_clear)
             clear_button.image = img_clear  # keep a reference
             clear_button.grid(row = 0, column = 3)
-            clear_button.config(command = lambda owner_cards = owner_cards: self.clear_button_click(owner_cards))
-
-    def show(self):
-        self.root.mainloop()
+            clear_button.config(command = lambda owner_cards = owner_cards: 
+                self.clear_button_click(owner_cards))
 
     def fill_cards_entry(self, owner, cards_text, owner_cards):
-        self.entries[owner].delete(0, 'end')
-        self.entries[owner].insert(0, cards_text)
+        self.card_selection_entries[owner].delete(0, 'end')
+        self.card_selection_entries[owner].insert(0, cards_text)
 
     def clear_button_click(self, owner):
-        self.entries[owner].delete(0, 'end')
-        
+        self.card_selection_entries[owner].delete(0, 'end')
         for card_name in csw_owners[owner].selected_cards[:]:
             card_instance = csw_owners[owner].cards_dict[card_name]
             card_instance.deselect_card()
+
+    def show(self):
+        self.root.mainloop()
 
 
 class CardSelectionWindow:
@@ -206,7 +210,7 @@ class CardSelectionWindow:
         self.wcs.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
 
         self.selected_cards = []
-        self.cards_dict = {}
+        self.card_dict = {}
         self.create_layout()
 
     def create_layout(self):
@@ -222,7 +226,7 @@ class CardSelectionWindow:
                 card_color = naipes_list[row][1]
                 card_instance = Cards(self.owner, card_name, card_color, cards_frame, 
                     row, col)
-                self.cards_dict[card_name] = card_instance
+                self.card_dict[card_name] = card_instance
         
         self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled')
         self.ok_button.config(command = lambda: self.ok_button_click())
@@ -239,15 +243,17 @@ class CardSelectionWindow:
                 for card in csw_owners[ow].selected_cards:
                     blocked_cards.append(card)
         
-        for card_key in self.cards_dict:
+        for card_key in self.card_dict:
+            card_instance = self.card_dict[card_key]
             if card_key in blocked_cards:
-                self.cards_dict[card_key].disable_card_button()
-            elif self.cards_dict[card_key].get_card_button_state() == 'disabled':
-                self.cards_dict[card_key].normalize_card_button()
+                card_instance.disable_card_button()
+            elif card_instance.get_card_button_state() == 'disabled':
+                card_instance.normalize_card_button()
                    
     def show(self):
         self.block_used_cards()
         self.wcs.deiconify()
+        return 'the card selection window was displayed'
         
     def get_len_cards(self):
         return len(self.selected_cards)
@@ -348,12 +354,12 @@ class Cards:
         self.frame = frame
         self.row = row
         self.column = column
-        self.button = self.create_button() # stores each button created
+        self.button = self.create_button()
 
     def create_button(self):
         card_button = tkinter.Button(self.frame, width = 2, heigh = 2, 
             text = self.card_name, fg = self.card_color)
-        card_button.config(command = lambda: self.card_button_click(card_button))
+        card_button.config(command = lambda: self.card_button_click())
         card_button.grid(row = self.row, column = self.column)
         return card_button
 
@@ -361,11 +367,11 @@ class Cards:
         state = self.button['state']
         return state
 
-    def card_button_click(self, card_button):
+    def card_button_click(self):
         self.card_window = csw_owners[self.owner] # card selection window
         qtd = self.card_window.get_len_cards()
 
-        if card_button['bg'] == 'SystemButtonFace':
+        if self.button['bg'] == 'SystemButtonFace':
             if self.owner == 'hero' and qtd < 2:
                 self.select_card()
             elif self.owner == 'flop' and qtd < 3:
@@ -375,7 +381,10 @@ class Cards:
         else:
             self.deselect_card()
 
+        return 'the card button was clicked'
+
     def select_card(self):
+        self.card_window = csw_owners[self.owner] # card selection window
         self.button['bg'] = 'gray'
         self.card_window.selected_cards.append(self.card_name)
 
@@ -387,6 +396,8 @@ class Cards:
             self.card_window.activate_ok_button()
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
+
+        return 'the card was selected'
 
     def deselect_card(self):
         self.button['bg'] = 'SystemButtonFace'
@@ -452,6 +463,7 @@ rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf
     'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
 pf_selected_color = ''
+
 
 if __name__ == '__main__':
     app.show()
