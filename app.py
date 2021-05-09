@@ -260,6 +260,7 @@ class CardSelectionWindow:
 
     def activate_ok_button(self):
         self.ok_button['state'] = 'active'
+        return self.ok_button['state']
 
     def disable_ok_button(self):
         self.ok_button['state'] = 'disabled'
@@ -354,13 +355,15 @@ class Cards:
         self.frame = frame
         self.row = row
         self.column = column
-        self.button = self.create_button()
+        self.button = ''
+        self.create_button()
 
     def create_button(self):
         card_button = tkinter.Button(self.frame, width = 2, heigh = 2, 
             text = self.card_name, fg = self.card_color)
         card_button.config(command = lambda: self.card_button_click())
         card_button.grid(row = self.row, column = self.column)
+        self.button = card_button
         return card_button
 
     def get_card_button_state(self):
@@ -381,7 +384,7 @@ class Cards:
         else:
             return self.deselect_card()
         
-        return 'passou direto'
+        return 'card button click went wrong!'
 
     def select_card(self):
         self.card_window = csw_owners[self.owner] # card selection window
@@ -397,7 +400,7 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
 
-        return csw_owners['hero'].selected_cards
+        return csw_owners['hero'].selected_cards, self.card_window.ok_button['state']
 
     def deselect_card(self):
         self.button['bg'] = 'SystemButtonFace'
@@ -412,7 +415,7 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
             self.card_window.disable_ok_button()
         
-        return csw_owners['hero'].selected_cards
+        return csw_owners['hero'].selected_cards, self.card_window.ok_button['state']
 
     def normalize_card_button(self):
         self.button['state'] = 'normal'
@@ -465,6 +468,7 @@ rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf
     'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
 pf_selected_color = ''
+
 
 if __name__ == '__main__':
     app.show()
