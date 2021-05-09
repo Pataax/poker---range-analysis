@@ -11,6 +11,18 @@ def app():
 def hero_csw():
     return CardSelectionWindow('hero')
 
+@pytest.fixture(scope = 'module')
+def flop_csw():
+    return CardSelectionWindow('flop')
+
+@pytest.fixture(scope = 'module')
+def turn_csw():
+    return CardSelectionWindow('turn')
+
+@pytest.fixture(scope = 'module')
+def river_csw():
+    return CardSelectionWindow('river')
+
 
 class TestAppInitialParameters:
     def test_app_widgets_dict_has_hero_flop_turn_river_as_keys(self, app):
@@ -45,7 +57,7 @@ class TestCardSelectionWindowInitialParameter:
         assert hero_csw.ok_button['state'] == 'disabled'
 
 
-class TestCardsFuctions:
+class TestCardsFunctions:
     def test_card_select_append_card_to_list(self, hero_csw):
         assert hero_csw.card_dict['Th'].card_button_click()[0] == ['Th']
 
@@ -59,7 +71,7 @@ class TestCardsFuctions:
         hero_csw.card_dict['Th'].card_button_click()
         assert hero_csw.card_dict['Th'].button['bg'] == 'gray'
 
-    def test_deselect_card_change_card_background_to_systembuttonface(self, hero_csw):
+    def test_deselect_card_change_card_background_to_systembuttonface_again(self, hero_csw):
         hero_csw.card_dict['Th'].card_button_click()
         assert hero_csw.card_dict['Th'].button['bg'] == 'SystemButtonFace'
 
@@ -76,6 +88,48 @@ class TestCardsFuctions:
         assert hero_csw.card_dict['Ks'].card_button_click()[1] == 'disabled'
 
 
-''
+class TestCardSelectionWindowIntegrations:
+    def test_selected_cards_are_disabled_in_remaining_cardselecwindows(self, 
+    hero_csw, flop_csw, turn_csw, river_csw):
+        hero_csw.card_dict['Ad'].card_button_click()
+        hero_csw.card_dict['Kd'].card_button_click()
+        flop_csw.show()
+        assert flop_csw.card_dict['Ad'].button['state'] == 'disabled'
+        turn_csw.show()
+        assert turn_csw.card_dict['Ad'].button['state'] == 'disabled'
+        river_csw.show()
+        assert river_csw.card_dict['Ad'].button['state'] == 'disabled'
+
+    def test_hero_selected_card_cant_be_selected_on_other_window(self, 
+    hero_csw, flop_csw, turn_csw, river_csw):
+        assert turn_csw.card_dict['Ad'].card_button_click() == "button can't be clicked"
+        assert turn_csw.card_dict['Kd'].card_button_click() == "button can't be clicked"
+        assert flop_csw.card_dict['Ad'].card_button_click() == "button can't be clicked"
+        assert flop_csw.card_dict['Kd'].card_button_click() == "button can't be clicked"
+        assert river_csw.card_dict['Ad'].card_button_click() == "button can't be clicked"
+        assert river_csw.card_dict['Kd'].card_button_click() == "button can't be clicked"
+        
+    def test_flop_selected_cards_are_disabled_in_remaining_cardselecwindows(self, 
+    hero_csw, flop_csw, turn_csw, river_csw):
+        flop_csw.card_dict['Ah'].card_button_click()
+        flop_csw.card_dict['Kh'].card_button_click()
+        flop_csw.card_dict['Qh'].card_button_click()
+        hero_csw.show()
+        assert hero_csw.card_dict['Ah'].button['state'] == 'disabled'
+        turn_csw.show()
+        assert turn_csw.card_dict['Ah'].button['state'] == 'disabled'
+        river_csw.show()
+        assert river_csw.card_dict['Ah'].button['state'] == 'disabled'
+
+
+    def test_flop_selected_card_cant_be_selected_on_other_window(self, 
+    hero_csw, flop_csw, turn_csw, river_csw):
+        assert turn_csw.card_dict['Ah'].card_button_click() == "button can't be clicked"
+        assert turn_csw.card_dict['Kh'].card_button_click() == "button can't be clicked"
+        assert hero_csw.card_dict['Ah'].card_button_click() == "button can't be clicked"
+        assert hero_csw.card_dict['Kh'].card_button_click() == "button can't be clicked"
+        assert river_csw.card_dict['Ah'].card_button_click() == "button can't be clicked"
+        assert river_csw.card_dict['Kh'].card_button_click() == "button can't be clicked"
+
 if __name__ == '__main__':
     pytest.main()

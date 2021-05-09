@@ -374,17 +374,18 @@ class Cards:
         self.card_window = csw_owners[self.owner] # card selection window
         qtd = self.card_window.get_len_cards()
 
-        if self.button['bg'] == 'SystemButtonFace':
-            if self.owner == 'hero' and qtd < 2:
-                return self.select_card()
-            elif self.owner == 'flop' and qtd < 3:
-                return self.select_card()
-            elif (self.owner == 'turn' or self.owner == 'river') and qtd == 0:
-                return self.select_card()
+        if self.button['state'] == 'normal':
+            if self.button['bg'] == 'SystemButtonFace':
+                if self.owner == 'hero' and qtd < 2:
+                    return self.select_card()
+                elif self.owner == 'flop' and qtd < 3:
+                    return self.select_card()
+                elif (self.owner == 'turn' or self.owner == 'river') and qtd == 0:
+                    return self.select_card()
+            else:
+                return self.deselect_card()
         else:
-            return self.deselect_card()
-        
-        return 'card button click went wrong!'
+            return "button can't be clicked"
 
     def select_card(self):
         self.card_window = csw_owners[self.owner] # card selection window
