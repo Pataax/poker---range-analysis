@@ -129,6 +129,7 @@ class PokerRangeAnalysis:
             slot_button.config(command = lambda slot_name = slot_name
             :rsw_slots[slot_name].show())
             slot_button.grid(row = n, column = 0, padx = 5, pady = 5, sticky = 's')
+            self.widgets[slot_name] = slot_button
 
     def creates_equity_frame(self, frame, entry_rows, equity_type, frame_row, frame_column):
         '''creates the equity and fold equity frames on each street'''
@@ -289,6 +290,9 @@ class RangeSelectionWindow:
         self.rsw.wm_resizable(False, False)
         self.rsw.withdraw()
         self.rsw.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
+        self.hands_dict = {}
+        self.color_buttons = {}
+        self.current_color = ''
         self.create_layout()
 
     def create_layout(self):
@@ -305,9 +309,10 @@ class RangeSelectionWindow:
                 original_hand_color = '#FFE7B5' if 's' in hand_name \
                 else '#E7EFF7' if 'o' in hand_name else '#CFDFC7'
 
-                Hands(self.slot_name, hand_name, original_hand_color, 
-                hands_frame, row, col).create_hand_button()
+                hand_instance = Hands(self.slot_name, hand_name, original_hand_color, 
+                hands_frame, row, col)
                 hands_index += 1
+                self.hands_dict[hand_name] = hand_instance
         
         auxiliary_frame = tkinter.Frame(main_frame)
         auxiliary_frame.grid(row = 0, column = 2, padx = (0, 10), pady = (10, 0), sticky = 'n')
@@ -319,6 +324,8 @@ class RangeSelectionWindow:
                 :self.color_button_clicked(color_button))
             color_button_control[self.slot_name]['buttons'].append(color_button)
             color_button.grid(pady = 2)
+            self.color_buttons[key] = color_button
+
 
         button_clear = tkinter.Button(auxiliary_frame, text = 'Clear')
         button_clear.grid(pady = 5)
@@ -332,6 +339,7 @@ class RangeSelectionWindow:
 
     def show(self):
         self.rsw.deiconify()
+        return 'the range selection window was displayed'
 
     def cancel_button_click(self):
         self.rsw.withdraw()
@@ -339,18 +347,25 @@ class RangeSelectionWindow:
     def color_button_clicked(self, color_button):
         if color_button['relief'] == 'raised':
             color_button['relief'] = 'sunken'
-            # updates the variable that controls the current color
-            color_button_control[self.slot_name]['color'] = color_button['bg']
             
-            # disable others color buttons
-            for cb in color_button_control[self.slot_name]['buttons']:
-                if cb != color_button:
-                    cb['relief'] = 'raised'
+            # updates the variable that controls the current color
+            self.current_color = color_button['bg']
 
+            self.deselect_other_color_buttons(color_button['text'])
+            
         elif color_button['relief'] == 'sunken':
             color_button['relief'] = 'raised'
-            color_button_control[self.slot_name]['color'] = ''
+            self.current_color = ''
 
+        return color_button['relief']
+
+    def deselect_other_color_buttons(self, color_button_name):
+        for key in self.color_buttons:
+            if key != color_button_name:
+                self.color_buttons[key]['relief'] = 'raised'
+
+        return 'all other color buttons have been deselected'
+        
 
 class Cards:
     def __init__(self, owner_cards, card_name, card_color, frame, row, column):
@@ -439,26 +454,32 @@ class Hands:
         self.frame = frame
         self.row = row
         self.column = column
+        self.button = ''
+        self.create_hand_button()
 
     def create_hand_button(self):
         hand_button = tkinter.Button(self.frame, width = 5, bg = self.original_hand_color, 
             text = self.hand_name)
-        hand_button.config(command = lambda: self.hand_button_clicked(hand_button))
+        hand_button.config(command = lambda: self.hand_button_clicked())
         hand_button.grid(row = self.row, column = self.column)
+        self.button = hand_button
 
-    def hand_button_clicked(self, hand_button):
-        current_color = color_button_control[self.slot_name]['color']
+    def hand_button_clicked(self):
+        current_color = rsw_slots[self.slot_name].current_color
 
-        if current_color == '' or hand_button['bg'] == current_color:
-            self.deselect_hand(hand_button)
+        if current_color == '' or self.button['bg'] == current_color:
+            return self.deselect_hand()
         else:
-            self.select_hand(hand_button, current_color)
+            return self.select_hand()
     
-    def select_hand(self, hand_button, current_color):
-        hand_button['bg'] = current_color
+    def select_hand(self):
+        current_color = rsw_slots[self.slot_name].current_color
+        self.button['bg'] = current_color
+        return 'a carta foi selecionada'
 
-    def deselect_hand(self, hand_button):
-        hand_button['bg'] = self.original_hand_color
+    def deselect_hand(self):
+        self.button['bg'] = self.original_hand_color
+        return 'a carta foi deselecionada'
 
 
 '''----------------------------------------------------------------------------------------------- '''

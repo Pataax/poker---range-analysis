@@ -2,13 +2,14 @@
 
 import pytest
 import tkinter
-from app import PokerRangeAnalysis, CardSelectionWindow, Cards
+from app import Hands, PokerRangeAnalysis, CardSelectionWindow, RangeSelectionWindow, Cards
 
 
 
 @pytest.fixture(scope = 'module')
 def app():
     return PokerRangeAnalysis()
+
 
 @pytest.fixture(scope = 'module')
 def hero_csw():
@@ -26,10 +27,15 @@ def turn_csw():
 def river_csw():
     return CardSelectionWindow('river')
 
+@pytest.fixture(scope = 'module')
+def pf1_rsw():
+    return RangeSelectionWindow('pf1')
+
 
 class TestAppInitialParameters:
-    def test_app_widgets_dict_has_hero_flop_turn_river_as_keys(self, app):
-        assert list(app.widgets.keys()) == ['hero', 'flop', 'turn', 'river']
+    def test_app_widgets_dict_keys(self, app):
+        assert list(app.widgets.keys()) == ['pf1', 'pf2', 'f1', 'f2', 'f3', 
+        't1', 't2', 't3', 'r1', 'r2', 'r3', 'hero', 'flop', 'turn', 'river',]
 
     def test_app_card_selection_entries_dict_stores_entries_type(self, app):
         assert type(app.widgets['hero']['entries']) == type(tkinter.Entry())
@@ -44,7 +50,10 @@ class TestAppButtonsWorks:
             'the card selection window was displayed'
 
     def test_app_clear_button_works(self, app):
-        app.widgets['turn']['clear_button'].invoke()
+        assert app.clear_button_click('turn')
+
+    def test_app_pf1_button_works(self, app):
+        assert app.widgets['pf1'].invoke() == 'the range selection window was displayed'
 
 
 class TestCardSelectionWindowInitialParameter:
@@ -55,15 +64,13 @@ class TestCardSelectionWindowInitialParameter:
         assert len(hero_csw.card_dict) == 52
 
     def test_card_dict_stores_instances(self, hero_csw):
-        any_frame = tkinter.Frame()
-        any_card_instance = Cards('bruno', 'Ax', 'green', any_frame, 0, 0)
-        assert type(hero_csw.card_dict['2c']) == type(any_card_instance)
+        assert isinstance(hero_csw.card_dict['2c'], Cards) == True
 
     def test_ok_button_starts_disabled(self, hero_csw):
         assert hero_csw.ok_button['state'] == 'disabled'
 
 
-class TestCardsFunctions:
+class TestCards:
     def test_card_select_append_card_to_list(self, hero_csw):
         assert hero_csw.card_dict['Th'].card_button_click()[0] == ['Th']
 
@@ -153,6 +160,49 @@ class TestCardSelectionSelectingCards:
         assert hero_csw.card_dict['Kh'].card_button_click() == "button can't be clicked"
         assert river_csw.card_dict['Ah'].card_button_click() == "button can't be clicked"
         assert river_csw.card_dict['Kh'].card_button_click() == "button can't be clicked"
+
+
+class TestRangeSelection:
+    def test_hands_dict_starts_169_hands(self, pf1_rsw):
+        assert len(pf1_rsw.hands_dict) == 169
+
+    def test_hands_dict_store_hands_instance(self, pf1_rsw):
+        assert isinstance(pf1_rsw.hands_dict['AA'], Hands) == True
+
+    def test_color_buttons_dict_len_is_equal_8(self, pf1_rsw):
+        assert len(pf1_rsw.color_buttons) == 8
+
+    def test_color_buttons_stores_buttons(self, pf1_rsw):
+        assert type(pf1_rsw.color_buttons['2']) == type(tkinter.Button())
+
+    def test_select_a_color_button_returns_sunken_relief(self, pf1_rsw):
+        assert pf1_rsw.color_buttons['1'].invoke() == 'sunken'
+
+    def test_select_a_color_button_returns_current_color(self, pf1_rsw):
+        assert pf1_rsw.current_color == '#B2301E'
+
+    def test_select_a_color_button_deselect_all_others(self, pf1_rsw):
+        assert pf1_rsw.deselect_other_color_buttons('1') == 'all other color buttons have been deselected'
+
+    def test_select_other_color_button_deselect_the_first(self, pf1_rsw):
+        pf1_rsw.color_buttons['2'].invoke()
+        assert pf1_rsw.color_buttons['1']['relief'] == 'raised'
+
+    def test_deselect_color_button_returns_current_color_equal_empty(self, pf1_rsw):
+        pf1_rsw.color_buttons['2'].invoke()
+        assert pf1_rsw.current_color == ''
+
+
+class TestHands:
+    def test_selfbutton_store_a_button(self, pf1_rsw):
+        assert type(pf1_rsw.hands_dict['98o'].button) == type(tkinter.Button())
+
+    # def test_select_hand_without__first_selecting_color_returns_nothing(self, pf1_rsw):
+    #     assert pf1_rsw.hands_dict['JTo'].button.invoke() == 'a carta foi deselecionada'
+
+    # def test_selec_hand_with_current_color_return_colorful_button(self, pf1_rsw):
+    #     pf1_rsw.color_buttons['3'].invoke()
+    #     assert pf1_rsw.hands_dict['QQ'].hand_button_clicked() == 'a carta foi selecionada'
 
 
 if __name__ == '__main__':
