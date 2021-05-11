@@ -1,4 +1,4 @@
-import tkinter, threading
+import tkinter
 from tkinter import ttk
 from pprint import pprint
 from module import naipes_list, cards_matrix, hands, default_color_buttons, \
@@ -11,7 +11,6 @@ class PokerRangeAnalysis:
         self.root.wm_resizable(False, False) # block window resize
         self.root.title('Poker Range Analysis')
         
-        self.card_selection_entries = {}
         self.widgets = {}
         
         self.create_tabs_layout()
@@ -115,12 +114,12 @@ class PokerRangeAnalysis:
         for street in street_tabs_structure:
             main_frame = tkinter.Frame(self.root)
             path = street_tabs_structure[street]
-            self.creates_slot_buttons(main_frame, street , path['qtd'], path['tab_name'], 0, 0)
+            self.creates_slot_buttons(main_frame, path['qtd'], path['tab_name'], 0, 0)
             self.creates_equity_frame(main_frame, path['qtd'], 'equity', 0, 1)
             self.creates_equity_frame(main_frame, path['qtd'], 'fold_equity', 0, 2)
             tabs_control.add(main_frame, text = street)
     
-    def creates_slot_buttons(self, frame, street, qtd, abbreviation, row, column):
+    def creates_slot_buttons(self, frame, qtd, abbreviation, row, column):
         buttons_frame = tkinter.Frame(frame)
         buttons_frame.grid(row = row, column = column, sticky = 's', ipady = 7)
 
@@ -160,6 +159,7 @@ class PokerRangeAnalysis:
 
         for i in range(len(list_labels)):
             owner_cards = list_labels[i]
+            self.widgets[owner_cards] = {}
 
             frame = tkinter.Frame(main_frame)
             frame.grid(row = 0, column = i, padx = 5)
@@ -169,31 +169,34 @@ class PokerRangeAnalysis:
 
             cards_entry = tkinter.Entry(frame, width = 8)
             cards_entry.grid(row = 0, column = 1, padx = 5)
-            self.card_selection_entries[owner_cards] = cards_entry
+            self.widgets[owner_cards]['entries'] = cards_entry
 
             choose_cards_button = tkinter.Button(frame, image = img_cards)
             choose_cards_button.image = img_cards  # Keep a reference
             choose_cards_button.grid(row = 0, column = 2, padx = 5, pady = 5)
-            choose_cards_button.config(command = lambda owner_cards = owner_cards, 
-                cards_entry = cards_entry: csw_owners[owner_cards].show())
-            self.widgets[owner_cards] = {}
-            self.widgets[owner_cards]['card_selection'] = choose_cards_button
+            choose_cards_button.config(command = lambda owner_cards = owner_cards
+                :csw_owners[owner_cards].show())
+            self.widgets[owner_cards]['choose_button'] = choose_cards_button
 
             clear_button = tkinter.Button(frame, image = img_clear)
             clear_button.image = img_clear  # keep a reference
             clear_button.grid(row = 0, column = 3)
             clear_button.config(command = lambda owner_cards = owner_cards: 
                 self.clear_button_click(owner_cards))
+            self.widgets[owner_cards]['clear_button'] = clear_button
 
-    def fill_cards_entry(self, owner, cards_text, owner_cards):
-        self.card_selection_entries[owner].delete(0, 'end')
-        self.card_selection_entries[owner].insert(0, cards_text)
+    def fill_cards_entry(self, owner, cards_text):
+        self.widgets[owner]['entries'].delete(0, 'end')
+        self.widgets[owner]['entries'].insert(0, cards_text)
+        return self.widgets[owner]['entries'].get()
 
     def clear_button_click(self, owner):
-        self.card_selection_entries[owner].delete(0, 'end')
+        self.widgets[owner]['entries'].delete(0, 'end')
         for card_name in csw_owners[owner].selected_cards[:]:
-            card_instance = csw_owners[owner].cards_dict[card_name]
+            card_instance = csw_owners[owner].card_dict[card_name]
             card_instance.deselect_card()
+        
+        return self.widgets[owner]['entries'].get(), csw_owners[owner].selected_cards
 
     def show(self):
         self.root.mainloop()
@@ -269,8 +272,10 @@ class CardSelectionWindow:
         cards_text = ''
         for c in csw_owners[self.owner].selected_cards:
             cards_text += c
-        app.fill_cards_entry(self.owner, cards_text, self.owner)
+        foo = app.fill_cards_entry(self.owner, cards_text)
         self.wcs.withdraw()
+
+        return foo
 
     def cancel_button_click(self):
         self.wcs.withdraw()
@@ -404,6 +409,7 @@ class Cards:
         return csw_owners['hero'].selected_cards, self.card_window.ok_button['state']
 
     def deselect_card(self):
+        self.card_window = csw_owners[self.owner] # card selection window
         self.button['bg'] = 'SystemButtonFace'
         self.card_window.selected_cards.remove(self.card_name)
 
