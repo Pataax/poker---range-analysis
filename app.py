@@ -351,13 +351,13 @@ class RangeSelectionWindow:
             # updates the variable that controls the current color
             self.current_color = color_button['bg']
 
-            self.deselect_other_color_buttons(color_button['text'])
+            return color_button['relief'], self.deselect_other_color_buttons(color_button['text'])
             
         elif color_button['relief'] == 'sunken':
             color_button['relief'] = 'raised'
             self.current_color = ''
 
-        return color_button['relief']
+        return 
 
     def deselect_other_color_buttons(self, color_button_name):
         for key in self.color_buttons:
@@ -404,7 +404,7 @@ class Cards:
                     return self.select_card()
             else:
                 return self.deselect_card()
-        else:
+        elif self.button['state'] == 'disabled':
             return "button can't be clicked"
 
     def select_card(self):
@@ -421,7 +421,7 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
 
-        return csw_owners['hero'].selected_cards, self.card_window.ok_button['state']
+        return csw_owners[self.owner].selected_cards, self.card_window.ok_button['state']
 
     def deselect_card(self):
         self.card_window = csw_owners[self.owner] # card selection window
@@ -437,7 +437,7 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
             self.card_window.disable_ok_button()
         
-        return csw_owners['hero'].selected_cards, self.card_window.ok_button['state']
+        return csw_owners[self.owner].selected_cards, self.card_window.ok_button['state']
 
     def normalize_card_button(self):
         self.button['state'] = 'normal'
@@ -465,21 +465,20 @@ class Hands:
         self.button = hand_button
 
     def hand_button_clicked(self):
-        current_color = rsw_slots[self.slot_name].current_color
+        self.current_color = rsw_slots[self.slot_name].current_color
 
-        if current_color == '' or self.button['bg'] == current_color:
+        if self.current_color == '' or self.button['bg'] == self.current_color:
             return self.deselect_hand()
         else:
             return self.select_hand()
     
     def select_hand(self):
-        current_color = rsw_slots[self.slot_name].current_color
-        self.button['bg'] = current_color
-        return 'a carta foi selecionada'
+        self.button['bg'] = self.current_color
+        return 'the hand has been selected', self.button['bg']
 
     def deselect_hand(self):
         self.button['bg'] = self.original_hand_color
-        return 'a carta foi deselecionada'
+        return 'the hand has been deselected', self.button['bg']
 
 
 '''----------------------------------------------------------------------------------------------- '''
