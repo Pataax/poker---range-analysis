@@ -1,7 +1,6 @@
 import tkinter
 from tkinter import ttk
-from pprint import pprint
-from module import naipes_list, cards_matrix, hands, default_color_buttons, \
+from module import naipes_list, cards_matrix, hands, combinations, default_color_buttons, \
     color_button_control
 
 
@@ -290,7 +289,10 @@ class RangeSelectionWindow:
         self.rsw.wm_resizable(False, False)
         self.rsw.withdraw()
         self.rsw.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
+        self.widgets = {}
         self.hands_dict = {}
+        self.selected_combos = 0
+        self.total_combos = 0
         self.color_buttons = {}
         self.current_color = ''
         self.create_layout()
@@ -302,14 +304,17 @@ class RangeSelectionWindow:
         hands_frame = tkinter.Frame(main_frame)
         hands_frame.grid(row = 0, column = 0, padx = 10, pady = 10)
 
+        # hands buttons
         hands_index = 0
         for row in range (13):
             for col in range (13):
                 hand_name = hands[hands_index]
+                hand_combos = len(combinations[hand_name])
                 original_hand_color = '#FFE7B5' if 's' in hand_name \
                 else '#E7EFF7' if 'o' in hand_name else '#CFDFC7'
+                self.total_combos += hand_combos
 
-                hand_instance = Hands(self.slot_name, hand_name, original_hand_color, 
+                hand_instance = Hands(self.slot_name, hand_name, hand_combos, original_hand_color, 
                 hands_frame, row, col)
                 hands_index += 1
                 self.hands_dict[hand_name] = hand_instance
@@ -317,6 +322,7 @@ class RangeSelectionWindow:
         auxiliary_frame = tkinter.Frame(main_frame)
         auxiliary_frame.grid(row = 0, column = 2, padx = (0, 10), pady = (10, 0), sticky = 'n')
 
+        # color buttons
         for key, value in default_color_buttons.items():
             color_button = tkinter.Button(auxiliary_frame, 
                 width = 4, text = key, bg = value['color'])
@@ -326,16 +332,25 @@ class RangeSelectionWindow:
             color_button.grid(pady = 2)
             self.color_buttons[key] = color_button
 
-
         button_clear = tkinter.Button(auxiliary_frame, text = 'Clear')
         button_clear.grid(pady = 5)
 
         next_slot_button = tkinter.Button(auxiliary_frame, text = 'Next Slot')
         next_slot_button.grid(pady = (10, 5))
+        self.widgets['next_slot'] = next_slot_button
 
         if self.slot_name in ('pf2', 'f2', 'f3', 't2', 't3'):
             next_street_button = tkinter.Button(auxiliary_frame, text = 'Next Street')
             next_street_button.grid()
+            self.widgets['next_street'] = next_street_button
+
+        # labels
+        labels_frame = tkinter.Frame(main_frame)
+        labels_frame.grid(row = 1, column = 0, pady = (0 , 5))
+
+        self.label_combo = tkinter.Label(labels_frame, 
+            text = f'Leque de mãos selecionado contém {self.selected_combos}/{self.total_combos} mãos (0.00%)')
+        self.label_combo.grid()
 
     def show(self):
         self.rsw.deiconify()
@@ -447,9 +462,11 @@ class Cards:
 
 
 class Hands:
-    def __init__(self, slot_name, hand_name, original_hand_color, frame, row, column):
+    def __init__(self, slot_name, hand_name, hand_combos, original_hand_color, frame, row, column):
         self.slot_name = slot_name
         self.hand_name = hand_name
+        self.hand_combos = hand_combos
+        self.hand_full_name = f'{hand_name}\n{hand_combos}'
         self.original_hand_color = original_hand_color
         self.frame = frame
         self.row = row
@@ -459,7 +476,7 @@ class Hands:
 
     def create_hand_button(self):
         hand_button = tkinter.Button(self.frame, width = 5, bg = self.original_hand_color, 
-            text = self.hand_name)
+            text = self.hand_full_name)
         hand_button.config(command = lambda: self.hand_button_clicked())
         hand_button.grid(row = self.row, column = self.column)
         self.button = hand_button
@@ -474,6 +491,10 @@ class Hands:
     
     def select_hand(self):
         self.button['bg'] = self.current_color
+        rsw_slots[self.slot_name].selected_combos += self.hand_combos
+        rsw_slots[self.slot_name].label_combo.config(text = 'q'
+        )
+
         return 'the hand has been selected', self.button['bg']
 
     def deselect_hand(self):

@@ -29,6 +29,46 @@ def csw_river():
 def pf1_rsw():
     return rsw_slots['pf1']
 
+@pytest.fixture()
+def pf2_rsw():
+    return rsw_slots['pf2']
+
+@pytest.fixture()
+def f1_rsw():
+    return rsw_slots['f1']
+
+@pytest.fixture()
+def f2_rsw():
+    return rsw_slots['f2']
+
+@pytest.fixture()
+def f3_rsw():
+    return rsw_slots['f3']
+
+@pytest.fixture()
+def t1_rsw():
+    return rsw_slots['t1']
+
+@pytest.fixture()
+def t2_rsw():
+    return rsw_slots['t2']
+
+@pytest.fixture()
+def t3_rsw():
+    return rsw_slots['t3']
+
+@pytest.fixture()
+def r1_rsw():
+    return rsw_slots['r1']
+
+@pytest.fixture()
+def r2_rsw():
+    return rsw_slots['r2']
+
+@pytest.fixture()
+def r3_rsw():
+    return rsw_slots['r3']
+
 
 class TestAppInitialParameters:
     def test_widgets_dict_keys(self, new_app):
@@ -262,10 +302,37 @@ class TestRangeSelection:
     def test_deselect_color_button_return_raised_relief(self, pf1_rsw):
         assert pf1_rsw.color_buttons['2']['relief'] == 'raised'
 
+    def test_some_slots_have_next_street_button(self, pf2_rsw, f2_rsw, f3_rsw, t2_rsw, t3_rsw):
+        assert pf2_rsw.widgets['next_street'] != ''
+        assert f2_rsw.widgets['next_street'] != ''
+        assert f3_rsw.widgets['next_street'] != ''
+        assert t2_rsw.widgets['next_street'] != ''
+        assert t3_rsw.widgets['next_street'] != ''
+
+    def test_some_slots_doesnt_have_next_street_button(self, pf1_rsw, f1_rsw, t1_rsw):
+        assert 'next_street' not in pf1_rsw.widgets
+        assert 'next_street' not in f1_rsw.widgets
+        assert 'next_street' not in t1_rsw.widgets
+
 
 class TestHands:
     def test_selfbutton_store_a_button(self, pf1_rsw):
         assert type(pf1_rsw.hands_dict['98o'].button) == type(tkinter.Button())
+
+    def test_pairs_hands_have_6_combos(self, pf1_rsw):
+        for hand in pf1_rsw.hands_dict:
+            if hand[0] == hand[1]:
+                assert pf1_rsw.hands_dict[hand].hand_combos == 6
+
+    def test_suited_hands_have_4_combos(self, pf1_rsw):
+        for hand in pf1_rsw.hands_dict:
+            if 's' in hand:
+                assert pf1_rsw.hands_dict[hand].hand_combos == 4
+
+    def test_offsuited_hands_have_12_combos(self, pf1_rsw):
+        for hand in pf1_rsw.hands_dict:
+            if 'o' in hand:
+                assert pf1_rsw.hands_dict[hand].hand_combos == 12
 
     def test_select_hand_without_first_selecting_color_returns_deselected_hand(self, pf1_rsw):
         assert pf1_rsw.hands_dict['JTo'].button.invoke()[0] == 'the hand has been deselected'
@@ -277,8 +344,11 @@ class TestHands:
         pf1_rsw.color_buttons['1'].invoke()
         assert pf1_rsw.hands_dict['QQ'].button.invoke()[0] == 'the hand has been selected'
 
-    def test_selec_hand_with_current_color_returns_colorful_button(self, pf1_rsw):
+    def test_select_hand_with_current_color_returns_colorful_button(self, pf1_rsw):
         assert pf1_rsw.hands_dict['QQ'].button['bg'] == '#B2301E'
+
+    def test_select_hand_with_current_color_return_selectec_combos(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 6
 
 
 if __name__ == '__main__':
