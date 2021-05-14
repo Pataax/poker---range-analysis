@@ -334,21 +334,71 @@ class TestHands:
             if 'o' in hand:
                 assert pf1_rsw.hands_dict[hand].hand_combos == 12
 
-    def test_select_hand_without_first_selecting_color_returns_deselected_hand(self, pf1_rsw):
-        assert pf1_rsw.hands_dict['JTo'].button.invoke()[0] == 'the hand has been deselected'
+    def test_select_hand_without_first_selecting_color_doesnt_change_anything(self, pf1_rsw):
+        assert pf1_rsw.hands_dict['JTo'].button.invoke() == 'nothin has been changed'
 
-    def test_select_hand_without_first_selecting_color_returns_button_with_original_color(self, pf1_rsw):
+    def test_select_hand_without_first_selecting_color_keeps_button_original_color(self, pf1_rsw):
         assert pf1_rsw.hands_dict['JTo'].button['bg'] == pf1_rsw.hands_dict['JTo'].original_hand_color
 
-    def test_selec_hand_with_current_color_returns_selected_hand(self, pf1_rsw):
+    def test_select_hand_without_first_selecting_color_returns_selected_combos_0(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 0
+
+    def test_select_hands_with_current_color_returns_colorful_button(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()
-        assert pf1_rsw.hands_dict['QQ'].button.invoke()[0] == 'the hand has been selected'
+        pf1_rsw.hands_dict['AA'].button.invoke()
+        pf1_rsw.hands_dict['AKs'].button.invoke()
+        pf1_rsw.hands_dict['AKo'].button.invoke()
+        assert pf1_rsw.hands_dict['AA'].button['bg'] == '#B2301E'
+        assert pf1_rsw.hands_dict['AKs'].button['bg'] == '#B2301E'
+        assert pf1_rsw.hands_dict['AKo'].button['bg'] == '#B2301E'
 
-    def test_select_hand_with_current_color_returns_colorful_button(self, pf1_rsw):
-        assert pf1_rsw.hands_dict['QQ'].button['bg'] == '#B2301E'
+    def test_select_hands_with_current_color_returns_selected_combos_22(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 6 + 4 + 12
 
-    def test_select_hand_with_current_color_return_selectec_combos(self, pf1_rsw):
-        assert pf1_rsw.selected_combos == 6
+    def test_select_hands_with_current_color_returns_percent_combos_1_65(self, pf1_rsw):
+        assert pf1_rsw.percent_hands_selected == ((6 + 4 + 12) / 1326) * 100  # 1.65%
+
+    def test_deselect_hands_returns_buttons_with_original_colors(self, pf1_rsw):
+        pf1_rsw.color_buttons['1'].invoke()
+        pf1_rsw.hands_dict['AA'].button.invoke()
+        pf1_rsw.hands_dict['AKs'].button.invoke()
+        pf1_rsw.hands_dict['AKo'].button.invoke()
+        assert pf1_rsw.hands_dict['AA'].button['bg'] == pf1_rsw.hands_dict['AA'].original_hand_color
+        assert pf1_rsw.hands_dict['AKs'].button['bg'] == pf1_rsw.hands_dict['AKs'].original_hand_color
+        assert pf1_rsw.hands_dict['AKo'].button['bg'] == pf1_rsw.hands_dict['AKo'].original_hand_color
+
+    def test_deselect_hands_returns_selected_combos_0(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 0
+
+    def test_deselect_hands_returns_percent_combos_0(self, pf1_rsw):
+        assert pf1_rsw.percent_hands_selected == 0
+
+    def test_select_all_hands_return_percent_combos_100(self, pf1_rsw):
+        pf1_rsw.color_buttons['2'].invoke()
+
+        for hand in pf1_rsw.hands_dict:
+            pf1_rsw.hands_dict[hand].button.invoke()
+
+        assert pf1_rsw.percent_hands_selected == 100
+
+    def test_select_all_hands_returns_percent_selected_combos_1326(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 1326
+
+    def test_deselect_all_hands_return_percent_combos_0(self, pf1_rsw):
+        for hand in pf1_rsw.hands_dict:
+            pf1_rsw.hands_dict[hand].button.invoke()
+
+        assert pf1_rsw.percent_hands_selected == 0
+
+    def test_deselect_all_hands_returns_percent_selected_combos_0(self, pf1_rsw):
+        assert pf1_rsw.selected_combos == 0
+
+    def test_reselect_hand_doesnt_change_selected_combo(self, pf1_rsw):
+        pf1_rsw.color_buttons['1'].invoke()
+        pf1_rsw.hands_dict['A2s'].button.invoke()
+        pf1_rsw.color_buttons['2'].invoke()
+        pf1_rsw.hands_dict['A2s'].button.invoke()
+        assert pf1_rsw.selected_combos == 4
 
 
 if __name__ == '__main__':

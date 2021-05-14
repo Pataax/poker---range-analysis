@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import ttk
+from tkinter.constants import CURRENT
 from module import naipes_list, cards_matrix, hands, combinations, default_color_buttons, \
     color_button_control
 
@@ -349,7 +350,8 @@ class RangeSelectionWindow:
         labels_frame.grid(row = 1, column = 0, pady = (0 , 5))
 
         self.label_combo = tkinter.Label(labels_frame, 
-            text = f'Leque de mãos selecionado contém {self.selected_combos}/{self.total_combos} mãos (0.00%)')
+            text = f'Leque de mãos selecionado contém ' \
+                f'{self.selected_combos}/{self.total_combos} mãos (0.00%)')
         self.label_combo.grid()
 
     def show(self):
@@ -380,7 +382,13 @@ class RangeSelectionWindow:
                 self.color_buttons[key]['relief'] = 'raised'
 
         return 'all other color buttons have been deselected'
-        
+
+    def update_label_combo(self):
+        self.percent_hands_selected = (self.selected_combos / self.total_combos) * 100
+        self.label_combo.config(
+            text = f'Leque de mãos selecionado contém '\
+                f'{self.selected_combos}/{self.total_combos} mãos ({self.percent_hands_selected:.2f}%)')
+
 
 class Cards:
     def __init__(self, owner_cards, card_name, card_color, frame, row, column):
@@ -484,22 +492,28 @@ class Hands:
     def hand_button_clicked(self):
         self.current_color = rsw_slots[self.slot_name].current_color
 
-        if self.current_color == '' or self.button['bg'] == self.current_color:
-            return self.deselect_hand()
-        else:
+        if self.current_color != '' and self.button['bg'] == self.original_hand_color:
             return self.select_hand()
+        elif self.current_color != '' and self.button['bg'] != self.current_color:
+            return self.reselect_hand()
+        elif (self.button['bg'] == self.current_color) or (self.current_color == '' and \
+            self.button['bg'] != self.original_hand_color):
+            return self.deselect_hand()
+        
+        return 'nothin has been changed'
     
     def select_hand(self):
         self.button['bg'] = self.current_color
         rsw_slots[self.slot_name].selected_combos += self.hand_combos
-        rsw_slots[self.slot_name].label_combo.config(text = 'q'
-        )
+        rsw_slots[self.slot_name].update_label_combo()
 
-        return 'the hand has been selected', self.button['bg']
+    def reselect_hand(self):
+        self.button['bg'] = self.current_color
 
     def deselect_hand(self):
         self.button['bg'] = self.original_hand_color
-        return 'the hand has been deselected', self.button['bg']
+        rsw_slots[self.slot_name].selected_combos -= self.hand_combos
+        rsw_slots[self.slot_name].update_label_combo()
 
 
 '''----------------------------------------------------------------------------------------------- '''
