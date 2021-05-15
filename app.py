@@ -1,6 +1,5 @@
 import tkinter
 from tkinter import ttk
-from tkinter.constants import CURRENT
 from module import naipes_list, cards_matrix, hands, combinations, default_color_buttons, \
     color_button_control
 
@@ -156,7 +155,7 @@ class PokerRangeAnalysis:
 
         list_labels = ['hero', 'flop', 'turn', 'river']
         img_cards = tkinter.PhotoImage(file = "icons\\card_selection.png", master = main_frame)
-        img_clear = tkinter.PhotoImage(file = "icons\\button_clear.png", master = main_frame)
+        img_clear = tkinter.PhotoImage(file = "icons\\clear_button.png", master = main_frame)
 
         for i in range(len(list_labels)):
             owner_cards = list_labels[i]
@@ -292,6 +291,7 @@ class RangeSelectionWindow:
         self.rsw.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
         self.widgets = {}
         self.hands_dict = {}
+        self.selected_hands = []
         self.selected_combos = 0
         self.total_combos = 0
         self.color_buttons = {}
@@ -333,16 +333,20 @@ class RangeSelectionWindow:
             color_button.grid(pady = 2)
             self.color_buttons[key] = color_button
 
-        button_clear = tkinter.Button(auxiliary_frame, text = 'Clear')
-        button_clear.grid(pady = 5)
+        clear_button = tkinter.Button(auxiliary_frame, text = 'Clear')
+        clear_button.grid(pady = (5, 20))
+        clear_button.config(command = self.clear_button_click)
 
-        next_slot_button = tkinter.Button(auxiliary_frame, text = 'Next Slot')
-        next_slot_button.grid(pady = (10, 5))
-        self.widgets['next_slot'] = next_slot_button
+        if self.slot_name in ('pf1', 'f1', 'f2', 't1', 't2', 'r1', 'r2'):
+            next_slot_button = tkinter.Button(auxiliary_frame, text = 'Next Slot')
+            next_slot_button.grid(pady = (0, 10))
+            next_slot_button.config(command = self.next_slot_button_click)
+            self.widgets['next_slot'] = next_slot_button
 
         if self.slot_name in ('pf2', 'f2', 'f3', 't2', 't3'):
             next_street_button = tkinter.Button(auxiliary_frame, text = 'Next Street')
-            next_street_button.grid()
+            next_street_button.grid(pady = (0, ))
+            next_street_button.config(command = self.next_street_button_click)
             self.widgets['next_street'] = next_street_button
 
         # labels
@@ -388,6 +392,34 @@ class RangeSelectionWindow:
         self.label_combo.config(
             text = f'Leque de mãos selecionado contém '\
                 f'{self.selected_combos}/{self.total_combos} mãos ({self.percent_hands_selected:.2f}%)')
+
+    def clear_button_click(self):
+        for hand in self.selected_hands[:]:
+            self.hands_dict[hand].deselect_hand()
+
+    def next_slot_button_click(self):
+        self.rsw.withdraw()
+        keys = list(rsw_slots)
+        next_slot = keys[(keys.index(self.slot_name)) + 1]
+        rsw_slots[next_slot].show()
+
+        return next_slot
+
+    def next_street_button_click(self):
+        self.rsw.withdraw()
+        keys = list(rsw_slots)
+
+        current_slot_first_char = keys[keys.index(self.slot_name)][0]
+        next_slot_first_char = keys[((keys.index(self.slot_name)) + 1)][0]
+
+        if next_slot_first_char == current_slot_first_char:
+            next_street = keys[keys.index(self.slot_name) + 2]
+        else:
+            next_street = keys[keys.index(self.slot_name) + 1]
+
+        rsw_slots[next_street].show()
+
+        return next_street
 
 
 class Cards:
@@ -505,6 +537,7 @@ class Hands:
     def select_hand(self):
         self.button['bg'] = self.current_color
         rsw_slots[self.slot_name].selected_combos += self.hand_combos
+        rsw_slots[self.slot_name].selected_hands.append(self.hand_name)
         rsw_slots[self.slot_name].update_label_combo()
 
     def reselect_hand(self):
@@ -513,6 +546,7 @@ class Hands:
     def deselect_hand(self):
         self.button['bg'] = self.original_hand_color
         rsw_slots[self.slot_name].selected_combos -= self.hand_combos
+        rsw_slots[self.slot_name].selected_hands.remove(self.hand_name)
         rsw_slots[self.slot_name].update_label_combo()
 
 

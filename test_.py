@@ -1,5 +1,6 @@
 """Unit Tests"""
 
+from tkinter.constants import PAGES
 import pytest
 import tkinter
 from app import app, csw_owners, rsw_slots, Hands, Cards
@@ -314,6 +315,22 @@ class TestRangeSelection:
         assert 'next_street' not in f1_rsw.widgets
         assert 'next_street' not in t1_rsw.widgets
 
+    def test_next_slot_button_hide_the_window(self, pf1_rsw, f1_rsw, f2_rsw,t1_rsw, t2_rsw, r1_rsw, r2_rsw):
+        assert pf1_rsw.next_slot_button_click() == 'pf2'
+        assert f1_rsw.next_slot_button_click() == 'f2'
+        assert f2_rsw.next_slot_button_click() == 'f3'
+        assert t1_rsw.next_slot_button_click() == 't2'
+        assert t2_rsw.next_slot_button_click() == 't3'
+        assert r1_rsw.next_slot_button_click() == 'r2'
+        assert r2_rsw.next_slot_button_click() == 'r3'
+
+    def test_next_street_button_hide_the_window(self, pf2_rsw, f2_rsw, f3_rsw, t2_rsw, t3_rsw):
+        assert pf2_rsw.next_street_button_click() == 'f1'
+        assert f2_rsw.next_street_button_click() == 't1'
+        assert f3_rsw.next_street_button_click() == 't1'
+        assert t2_rsw.next_street_button_click() == 'r1'
+        assert t3_rsw.next_street_button_click() == 'r1'
+
 
 class TestHands:
     def test_selfbutton_store_a_button(self, pf1_rsw):
@@ -343,6 +360,9 @@ class TestHands:
     def test_select_hand_without_first_selecting_color_returns_selected_combos_0(self, pf1_rsw):
         assert pf1_rsw.selected_combos == 0
 
+    def test_select_hand_without_first_selecting_color_returns_selected_hands_empty(self, pf1_rsw):
+        assert pf1_rsw.selected_hands == []
+
     def test_select_hands_with_current_color_returns_colorful_button(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()
         pf1_rsw.hands_dict['AA'].button.invoke()
@@ -357,6 +377,9 @@ class TestHands:
 
     def test_select_hands_with_current_color_returns_percent_combos_1_65(self, pf1_rsw):
         assert pf1_rsw.percent_hands_selected == ((6 + 4 + 12) / 1326) * 100  # 1.65%
+
+    def test_select_hands_with_current_color_returns_selected_hands_list(self, pf1_rsw):
+        assert pf1_rsw.selected_hands == ['AA', 'AKs', 'AKo']
 
     def test_deselect_hands_returns_buttons_with_original_colors(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()
@@ -373,6 +396,9 @@ class TestHands:
     def test_deselect_hands_returns_percent_combos_0(self, pf1_rsw):
         assert pf1_rsw.percent_hands_selected == 0
 
+    def test_deselect_hands_returns_selected_hands__list_empty(self, pf1_rsw):
+        assert pf1_rsw.selected_hands == []
+
     def test_select_all_hands_return_percent_combos_100(self, pf1_rsw):
         pf1_rsw.color_buttons['2'].invoke()
 
@@ -381,17 +407,21 @@ class TestHands:
 
         assert pf1_rsw.percent_hands_selected == 100
 
-    def test_select_all_hands_returns_percent_selected_combos_1326(self, pf1_rsw):
+    def test_select_all_hands_returns_selected_combos_1326(self, pf1_rsw):
         assert pf1_rsw.selected_combos == 1326
 
-    def test_deselect_all_hands_return_percent_combos_0(self, pf1_rsw):
-        for hand in pf1_rsw.hands_dict:
-            pf1_rsw.hands_dict[hand].button.invoke()
+    def test_select_all_hands_returns_selected_hands_list_len_169(self, pf1_rsw):
+        assert len(pf1_rsw.selected_hands) == 169
 
+    def test_deselect_all_hands_return_percent_combos_0(self, pf1_rsw):
+        pf1_rsw.clear_button_click()
         assert pf1_rsw.percent_hands_selected == 0
 
-    def test_deselect_all_hands_returns_percent_selected_combos_0(self, pf1_rsw):
+    def test_deselect_all_hands_returns_selected_combos_0(self, pf1_rsw):
         assert pf1_rsw.selected_combos == 0
+
+    def test_deselect_all_hands_returns_selected_hands_list_len_0(self, pf1_rsw):
+        assert len(pf1_rsw.selected_hands) == 0
 
     def test_reselect_hand_doesnt_change_selected_combo(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()

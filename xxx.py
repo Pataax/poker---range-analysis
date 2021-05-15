@@ -1,26 +1,18 @@
-import tkinter
-from tkinter.constants import W
+rsw_slots = {'pf1': '', 'pf2': '', 
+    'f1': '','f2': '', 'f3': '',
+    't1': '', 't2': '', 't3': '', 
+    'r1': '', 'r2': '', 'r3': ''}
 
+slot_name = 'pf2'
+keys = list(rsw_slots)
 
-class Window:
-    def __init__(self) -> None:
-        self.root = tkinter.Tk()
-        self.dict = {}
-        self.create_layout()
-    
-    def create_layout(self):
-        self.b = tkinter.Button(command = self.button_click)
-        self.b.grid()
+current_slot_first_char = keys[keys.index(slot_name)][0]
+next_slot_first_char = keys[((keys.index(slot_name)) + 1)][0]
 
-    def button_click(self):
-        print('ok')
+if next_slot_first_char == current_slot_first_char:
+    next_street = keys[keys.index(slot_name) + 2]
+else:
+    next_street = keys[keys.index(slot_name) + 1]
+print(next_street)
 
-    def show(self):
-        self.root.mainloop()
-
-w = Window()
-# w.b['state'] = 'disabled'
-w.b.unbind(w.button_click)
-# w.b.invoke()
-w.show()
-
+# rsw_slots[next_street].show()
