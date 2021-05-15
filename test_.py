@@ -331,6 +331,9 @@ class TestRangeSelection:
         assert t2_rsw.next_street_button_click() == 'r1'
         assert t3_rsw.next_street_button_click() == 'r1'
 
+    def test_block_unused_cards(self, pf1_rsw, pf2_rsw, f1_rsw, t1_rsw):
+        pass
+
 
 class TestHands:
     def test_selfbutton_store_a_button(self, pf1_rsw):
