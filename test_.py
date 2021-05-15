@@ -363,6 +363,9 @@ class TestHands:
     def test_select_hand_without_first_selecting_color_returns_selected_hands_empty(self, pf1_rsw):
         assert pf1_rsw.selected_hands == []
 
+    def test_select_hand_without_first_selecting_color_returns_total_combos_1326(self, pf1_rsw):
+        assert pf1_rsw.total_combos == 1326
+
     def test_select_hands_with_current_color_returns_colorful_button(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()
         pf1_rsw.hands_dict['AA'].button.invoke()
@@ -446,6 +449,9 @@ class TestHands:
             for hand in street.hands_dict:
                 if hand not in pf1_rsw.selected_hands:
                     assert street.hands_dict[hand].button['state'] == 'disabled'
+
+    def test_pf2_total_combos_16(self, pf2_rsw):
+        assert pf2_rsw.total_combos == 16
 
     def test_clean_pf1_range_locks_all_hands_other_streets(self, pf1_rsw, pf2_rsw, f1_rsw, f2_rsw,
         f3_rsw, t1_rsw, t2_rsw, t3_rsw, r1_rsw, r2_rsw, r3_rsw):

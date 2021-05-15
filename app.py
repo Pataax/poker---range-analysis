@@ -313,7 +313,7 @@ class RangeSelectionWindow:
                 hand_combos = len(combinations[hand_name])
                 original_hand_color = '#FFE7B5' if 's' in hand_name \
                 else '#E7EFF7' if 'o' in hand_name else '#CFDFC7'
-                self.total_combos += hand_combos
+                # self.total_combos += hand_combos
 
                 hand_instance = Hands(self.slot_name, hand_name, hand_combos, original_hand_color, 
                 hands_frame, row, col)
@@ -353,9 +353,7 @@ class RangeSelectionWindow:
         labels_frame = tkinter.Frame(main_frame)
         labels_frame.grid(row = 1, column = 0, pady = (0 , 5))
 
-        self.label_combo = tkinter.Label(labels_frame, 
-            text = f'Leque de mãos selecionado contém ' \
-                f'{self.selected_combos}/{self.total_combos} mãos (0.00%)')
+        self.label_combo = tkinter.Label(labels_frame) # update_label_combo
         self.label_combo.grid()
 
     def block_unused_hands(self):
@@ -378,8 +376,15 @@ class RangeSelectionWindow:
         else:
             return 'this is the first slot'
 
+    def count_total_combos(self):
+        for hand in self.hands_dict:
+            if self.hands_dict[hand].button['state'] == 'normal':
+                self.total_combos += self.hands_dict[hand].hand_combos
+
     def show(self):
         self.block_unused_hands()
+        self.count_total_combos()
+        self.update_label_combo()
         self.rsw.deiconify()
         return 'the range selection window was displayed'
 
@@ -409,7 +414,10 @@ class RangeSelectionWindow:
         return 'all other color buttons have been deselected'
 
     def update_label_combo(self):
-        self.percent_hands_selected = (self.selected_combos / self.total_combos) * 100
+        if self.total_combos == 0:
+            self.percent_hands_selected = 0
+        else:
+            self.percent_hands_selected = (self.selected_combos / self.total_combos) * 100
         self.label_combo.config(
             text = f'Leque de mãos selecionado contém '\
                 f'{self.selected_combos}/{self.total_combos} mãos ({self.percent_hands_selected:.2f}%)')
