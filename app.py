@@ -358,8 +358,28 @@ class RangeSelectionWindow:
                 f'{self.selected_combos}/{self.total_combos} mãos (0.00%)')
         self.label_combo.grid()
 
+    def block_unused_hands(self):
+        keys = list(rsw_slots)
+        current_slot_index = keys.index(self.slot_name)
+
+        previous_slot = keys[current_slot_index - 1]
+        if current_slot_index != 0 and rsw_slots['pf1'].selected_hands == []:
+            for hand in self.hands_dict:
+                self.hands_dict[hand].button['state'] = 'disabled'
+                self.hands_dict[hand].button['bg'] = 'Systembuttonface'
+        elif current_slot_index != 0:
+            for hand in self.hands_dict:
+                if hand not in rsw_slots[previous_slot].selected_hands:
+                    self.hands_dict[hand].button['state'] = 'disabled'
+                    self.hands_dict[hand].button['bg'] = 'Systembuttonface'
+                else:
+                    self.hands_dict[hand].button['state'] = 'normal'
+                    self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
+        else:
+            return 'this is the first slot'
+
     def show(self):
-        self.block_unused_cards()
+        self.block_unused_hands()
         self.rsw.deiconify()
         return 'the range selection window was displayed'
 
@@ -421,23 +441,6 @@ class RangeSelectionWindow:
         rsw_slots[next_street].show()
 
         return next_street
-
-    def block_unused_cards(self):
-        keys = list(rsw_slots)
-        current_slot_index = keys.index(self.slot_name)
-
-        if current_slot_index != 0:
-            previous_slot = keys[current_slot_index - 1]
-            for hand in self.hands_dict:
-                if hand not in rsw_slots[previous_slot].selected_hands:
-                    self.hands_dict[hand].button['state'] = 'disabled'
-                    # self.hands_dict[hand].button['bg'] = 'Systembuttonface'
-                else:
-                    self.hands_dict[hand].button['state'] = 'normal'
-                    # self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
-
-        else:
-            return 'this is the first slot'
 
 
 class Cards:

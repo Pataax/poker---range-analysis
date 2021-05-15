@@ -331,9 +331,6 @@ class TestRangeSelection:
         assert t2_rsw.next_street_button_click() == 'r1'
         assert t3_rsw.next_street_button_click() == 'r1'
 
-    def test_block_unused_cards(self, pf1_rsw, pf2_rsw, f1_rsw, t1_rsw):
-        pass
-
 
 class TestHands:
     def test_selfbutton_store_a_button(self, pf1_rsw):
@@ -428,10 +425,38 @@ class TestHands:
 
     def test_reselect_hand_doesnt_change_selected_combo(self, pf1_rsw):
         pf1_rsw.color_buttons['1'].invoke()
-        pf1_rsw.hands_dict['A2s'].button.invoke()
+        pf1_rsw.hands_dict['AKs'].button.invoke()
+        pf1_rsw.hands_dict['AQs'].button.invoke()
+        pf1_rsw.hands_dict['AJs'].button.invoke()
+        pf1_rsw.hands_dict['ATs'].button.invoke()
         pf1_rsw.color_buttons['2'].invoke()
-        pf1_rsw.hands_dict['A2s'].button.invoke()
-        assert pf1_rsw.selected_combos == 4
+        pf1_rsw.hands_dict['AKs'].button.invoke()
+        pf1_rsw.hands_dict['AQs'].button.invoke()
+        pf1_rsw.hands_dict['AJs'].button.invoke()
+        pf1_rsw.hands_dict['ATs'].button.invoke()
+        assert pf1_rsw.selected_combos == 16
+
+    def test_pf1_selected_hands_blocked_another_streets(self, pf1_rsw, pf2_rsw, f1_rsw, f2_rsw,
+        f3_rsw, t1_rsw, t2_rsw, t3_rsw, r1_rsw, r2_rsw, r3_rsw):
+        foo = [pf2_rsw, f1_rsw, f2_rsw, f3_rsw, 
+            t1_rsw, t2_rsw, t3_rsw, r1_rsw, r2_rsw, r3_rsw]
+
+        for street in foo:
+            street.show()
+            for hand in street.hands_dict:
+                if hand not in pf1_rsw.selected_hands:
+                    assert street.hands_dict[hand].button['state'] == 'disabled'
+
+    def test_clean_pf1_range_locks_all_hands_other_streets(self, pf1_rsw, pf2_rsw, f1_rsw, f2_rsw,
+        f3_rsw, t1_rsw, t2_rsw, t3_rsw, r1_rsw, r2_rsw, r3_rsw):
+        foo = [pf2_rsw, f1_rsw, f2_rsw, f3_rsw, 
+            t1_rsw, t2_rsw, t3_rsw, r1_rsw, r2_rsw, r3_rsw]
+
+        pf1_rsw.clear_button_click()
+        for street in foo:
+            street.show()
+            for hand in street.hands_dict:
+                assert street.hands_dict[hand].button['state'] == 'disabled'
 
 
 if __name__ == '__main__':
