@@ -195,12 +195,12 @@ class PokerRangeAnalysis:
         for card_name in csw_owners[owner].selected_cards[:]:
             card_instance = csw_owners[owner].card_dict[card_name]
             card_instance.deselect_card()
-        
-        return self.widgets[owner]['entries'].get(), csw_owners[owner].selected_cards
 
+        return self.widgets[owner]['entries'].get()
+        
     def show(self):
         self.root.mainloop()
-        
+
 
 class CardSelectionWindow:
     def __init__(self, owner_cards):
@@ -272,10 +272,8 @@ class CardSelectionWindow:
         cards_text = ''
         for c in csw_owners[self.owner].selected_cards:
             cards_text += c
-        foo = app.fill_cards_entry(self.owner, cards_text)
+        app.fill_cards_entry(self.owner, cards_text)
         self.wcs.withdraw()
-
-        return foo
 
     def cancel_button_click(self):
         self.wcs.withdraw()
@@ -370,16 +368,14 @@ class RangeSelectionWindow:
         if color_button['relief'] == 'raised':
             color_button['relief'] = 'sunken'
             
-            # updates the variable that controls the current color
             self.current_color = color_button['bg']
+            self.deselect_other_color_buttons(color_button['text'])
 
-            return color_button['relief'], self.deselect_other_color_buttons(color_button['text'])
+            return color_button['relief']
             
         elif color_button['relief'] == 'sunken':
             color_button['relief'] = 'raised'
             self.current_color = ''
-
-        return 
 
     def deselect_other_color_buttons(self, color_button_name):
         for key in self.color_buttons:
@@ -431,10 +427,10 @@ class RangeSelectionWindow:
             for hand in self.hands_dict:
                 if hand not in rsw_slots[previous_slot].selected_hands:
                     self.hands_dict[hand].button['state'] = 'disabled'
-                    # self.hands_dict[hand].button['bg'] = 'Systembuttonface'
+                    self.hands_dict[hand].button['bg'] = 'Systembuttonface'
                 else:
                     self.hands_dict[hand].button['state'] = 'normal'
-                    # self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
+                    self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
 
         else:
             return 'this is the first slot'
@@ -494,8 +490,6 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
             self.card_window.activate_ok_button()
 
-        return csw_owners[self.owner].selected_cards, self.card_window.ok_button['state']
-
     def deselect_card(self):
         self.card_window = csw_owners[self.owner] # card selection window
         self.button['bg'] = 'SystemButtonFace'
@@ -510,8 +504,6 @@ class Cards:
         elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
             self.card_window.disable_ok_button()
         
-        return csw_owners[self.owner].selected_cards, self.card_window.ok_button['state']
-
     def normalize_card_button(self):
         self.button['state'] = 'normal'
 
@@ -549,8 +541,8 @@ class Hands:
         elif (self.button['bg'] == self.current_color) or (self.current_color == '' and \
             self.button['bg'] != self.original_hand_color):
             return self.deselect_hand()
-        
-        return 'nothin has been changed'
+        else:
+            return 'nothin has been changed'
     
     def select_hand(self):
         self.button['bg'] = self.current_color
