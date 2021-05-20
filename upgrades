@@ -1,2 +1,8 @@
-- Dar "upgrade" na janela de Card Selection toda vez que uma carta for selecionada
-    Pra quando duas janelas estiverem abertas, a atualização ser automática
+Card Selection Window:
+    Toda vez que uma carta for selecionada, as demais janelas de Card Selection que estiverem
+    abertas devem ser atualizadas, para que a seleção seja vista em tempo real nas demais janelas.
+
+    Ao desselecionar as carta de uma janela e fechar o toplevel, a entry permanece preenchida,
+    porém, ao reabrir o toplevel, nenhuma carta está selecionada.
+    Soluções: resselecionar as cartas ao abrir o toplevel com base na entry? ou cancelar a 
+    desseleção das cartas ao fechar a janela?
