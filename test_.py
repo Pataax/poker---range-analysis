@@ -26,7 +26,7 @@ streets_name = ['hero', 'flop', 'turn', 'river']
 slots_name = ('pf1', 'pf2', 'f1', 'f2', 'f3', 't1', 't2', 't3', 'r1', 'r2', 'r3')
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestAppInitialParameters:
     def test_widgets_dict_keys(self, new_app):
         assert list(new_app.widgets.keys()) == ['pf1', 'pf2', 'f1', 'f2', 'f3', 
@@ -42,15 +42,15 @@ class TestAppInitialParameters:
             assert type(new_app.widgets[street]['choose_button']) == type(tkinter.Button())
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestAppButtons:
     def test_streets_choose_buttons_works(self, new_app):
         for street in streets_name:
             assert new_app.widgets[street]['choose_button'].invoke() == \
                 'the card selection window was displayed'
 
-    def test_slots_buttons_works(self, new_app):
-        for slot in slots_name:
+    def test_slots_buttons_works(self, new_app, all_rsw):
+        for slot in all_rsw:
             assert new_app.widgets[slot].invoke() == 'the range selection window was displayed'
 
     def test_fill_cards_entry_function(self, new_app):
@@ -62,20 +62,20 @@ class TestAppButtons:
             assert new_app.widgets[street]['clear_button'].invoke() == ''
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestCardSelectionWindowInitialParameter:
     def test_selected_cards_dict_starts_empty(self, all_csw):
         for owner in all_csw:
             assert all_csw[owner].selected_cards == []
 
-    def test_card_dict_starts_52_cards(self, all_csw):
+    def test_cards_dict_starts_52_cards(self, all_csw):
         for owner in all_csw:
-            assert len(all_csw[owner].card_dict) == 52
+            assert len(all_csw[owner].cards_dict) == 52
 
-    def test_card_dict_stores_instances(self, all_csw):
+    def test_cards_dict_stores_instances(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
-                assert isinstance(all_csw[owner].card_dict[card], Cards) == True
+            for card in all_csw[owner].cards_dict:
+                assert isinstance(all_csw[owner].cards_dict[card], Cards) == True
 
     def test_ok_buttons_starts_disabled(self, all_csw):
         for owner in all_csw:
@@ -86,142 +86,147 @@ class TestCardSelectionWindowInitialParameter:
             assert all_csw[owner].ok_button.invoke() == ''
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestCards:
-    def test_cards_background_starts_as_systembuttonface(self, all_csw):
+    def test_cards_background_starts_as_SystemButtonFace(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
-                assert all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace'
+            for card in all_csw[owner].cards_dict:
+                assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
     
     def test_select_card_appends_card_to_list(self, all_csw):
         for owner in all_csw:
-            all_csw[owner].card_dict['Th'].button.invoke()
+            all_csw[owner].cards_dict['Th'].button.invoke()
             assert all_csw[owner].selected_cards == ['Th']
+    
+    def test_select_card_remove_hand_combos(self, all_rsw):
+        for slot in all_rsw:
+            for hand in all_rsw[slot].hands_dict:
+                for rmv_combo in all_rsw[slot].hands_dict[hand].removed_combos:
+                    assert 'Th' in rmv_combo
 
     def test_select_card_change_card_background_to_gray(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
+            for card in all_csw[owner].cards_dict:
                 if card == 'Th':
-                    assert all_csw[owner].card_dict['Th'].button['bg'] == 'gray'
+                    assert all_csw[owner].cards_dict['Th'].button['bg'] == 'gray'
                 else:
-                    assert all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace'
+                    assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
 
     def test_deselect_card_removes_card_to_list(self, all_csw):
         for owner in all_csw:
-            all_csw[owner].card_dict['Th'].button.invoke()
+            all_csw[owner].cards_dict['Th'].button.invoke()
             assert all_csw[owner].selected_cards == []
+    
+    def test_deselect_card_remove_removed_hand_combos(self, all_rsw):
+        for slot in all_rsw:
+            for hand in all_rsw[slot].hands_dict:
+                assert all_rsw[slot].hands_dict[hand].removed_combos == []
 
     def test_deselect_card_changes_card_background_to_systembuttonface_again(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
-                assert all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace'
+            for card in all_csw[owner].cards_dict:
+                assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestCardSelectionWindowOkandClearButtons:
     def test_select_just_1_card_on_hero_not_activate_ok_button(self, all_csw):
-        for owner in all_csw:
-            if owner == 'hero':
-                all_csw[owner].card_dict['Qs'].card_button_click()
-                assert all_csw[owner].ok_button['state'] == 'disabled'
+        all_csw['hero'].cards_dict['Qs'].button.invoke()
+        assert all_csw['hero'].ok_button['state'] == 'disabled'
 
     def test_select_second_card_on_hero_activate_ok_button(self, all_csw):
-        for owner in all_csw:
-            if owner == 'hero':
-                all_csw[owner].card_dict['Ks'].card_button_click()
-                assert all_csw[owner].ok_button['state'] == 'active'
+        all_csw['hero'].cards_dict['Ks'].button.invoke()
+        assert all_csw['hero'].ok_button['state'] == 'active'
 
     def test_ok_button_click(self, all_csw):
-        for owner in all_csw:
-            if owner == 'hero':
-                all_csw[owner].ok_button_click()
-                assert app.widgets['hero']['entries'].get() == 'QsKs'
+        all_csw['hero'].ok_button_click()
+        assert app.widgets['hero']['entries'].get() == 'QsKs'
 
     def test_deselect_1_of_2_card_on_hero_disable_ok_button(self, all_csw):
-        for owner in all_csw:
-            if owner == 'hero':
-                all_csw[owner].card_dict['Qs'].card_button_click()
-                assert all_csw[owner].ok_button['state'] == 'disabled'
+        all_csw['hero'].cards_dict['Qs'].button.invoke()
+        assert all_csw['hero'].ok_button['state'] == 'disabled'
 
     def test_deselect_second_card_on_hero_keeps_disabled_ok_button(self, all_csw):
-        for owner in all_csw:
-            if owner == 'hero':
-                all_csw[owner].card_dict['Ks'].card_button_click()
-                assert all_csw[owner].ok_button['state'] == 'disabled'
+        all_csw['hero'].cards_dict['Ks'].button.invoke()
+        assert all_csw['hero'].ok_button['state'] == 'disabled'
 
     def test_flop_clear_button_clears_entry(self, new_app, all_csw):
-        for owner in all_csw:
-            if owner == 'flop':
-                all_csw[owner].card_dict['7c'].card_button_click()
-                all_csw[owner].card_dict['2h'].card_button_click()
-                all_csw[owner].card_dict['3d'].card_button_click()
-                all_csw[owner].ok_button_click()
-                new_app.clear_button_click('flop')
-                assert new_app.widgets[owner]['entries'].get() == ''
+        all_csw['flop'].cards_dict['7c'].card_button_click()
+        all_csw['flop'].cards_dict['2h'].card_button_click()
+        all_csw['flop'].cards_dict['3d'].card_button_click()
+        all_csw['flop'].ok_button_click()
+        new_app.clear_button_click('flop')
+        assert new_app.widgets['flop']['entries'].get() == ''
 
     def test_flop_clear_button_clears_selected_list(self, all_csw):
-        for owner in all_csw:
-            if owner == 'flop':
-                assert all_csw[owner].selected_cards == []
+        assert all_csw['flop'].selected_cards == []
+
+    def test_card_removed_combos_start_empty(self, all_rsw):
+        for slot in all_rsw:
+            for card in all_rsw[slot].hands_dict:
+                assert all_rsw[slot].hands_dict[card].removed_combos == []
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestCardSelectionSelectingCards:
     def test_selected_cards_are_disabled_in_remaining_cardselecwindows(self, all_csw):
         for owner in all_csw:
             if owner == 'hero':
-                all_csw[owner].card_dict['Ad'].button.invoke()
-                all_csw[owner].card_dict['Kd'].button.invoke()
+                all_csw[owner].cards_dict['Ad'].button.invoke()
+                all_csw[owner].cards_dict['Kd'].button.invoke()
             if owner == 'flop':
-                all_csw[owner].card_dict['Ah'].button.invoke()
-                all_csw[owner].card_dict['Kh'].button.invoke()
-                all_csw[owner].card_dict['Qh'].button.invoke()
+                all_csw[owner].cards_dict['Ah'].button.invoke()
+                all_csw[owner].cards_dict['Kh'].button.invoke()
+                all_csw[owner].cards_dict['Qh'].button.invoke()
             if owner == 'turn':
-                all_csw[owner].card_dict['As'].button.invoke()
+                all_csw[owner].cards_dict['As'].button.invoke()
             if owner == 'river':
-                all_csw[owner].card_dict['Ac'].button.invoke()
+                all_csw[owner].cards_dict['Ac'].button.invoke()
 
         for owner in all_csw:
             all_csw[owner].show()
-            for card in all_csw[owner].card_dict:
+            for card in all_csw[owner].cards_dict:
                 if card in ('Ad', 'Kd', 'Ah', 'Kh', 'Qh', 'As', 'Ac'):
-                    if all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace':
-                        assert all_csw[owner].card_dict[card].button['state'] == 'disabled'
+                    if all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace':
+                        assert all_csw[owner].cards_dict[card].button['state'] == 'disabled'
 
     def test_selected_card_cant_be_invoked_on_other_window(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
+            for card in all_csw[owner].cards_dict:
                 if card in ('Ad', 'Kd', 'Ah', 'Kh', 'Qh', 'As', 'Ac'):
-                    if all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace':
-                        assert all_csw[owner].card_dict[card].button.invoke() == ''
+                    if all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace':
+                        assert all_csw[owner].cards_dict[card].button.invoke() == ''
 
     def test_selected_card_cant_be_clicked_on_other_window(self, all_csw):
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
+            for card in all_csw[owner].cards_dict:
                 if card in ('Ad', 'Kd', 'Ah', 'Kh', 'Qh', 'As', 'Ac'):
-                    if all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace':
-                        assert all_csw[owner].card_dict[card].card_button_click() == "button can't be clicked"
+                    if all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace':
+                        assert all_csw[owner].cards_dict[card].card_button_click() == \
+                            "button can't be clicked"
 
     def test_deselected_cards_are_available_in_remaining_cardselecwindows(self, all_csw):
         for owner in all_csw:
             if owner == 'hero':
-                all_csw[owner].card_dict['Ad'].button.invoke()
-                all_csw[owner].card_dict['Kd'].button.invoke()
+                all_csw[owner].cards_dict['Ad'].button.invoke()
+                all_csw[owner].cards_dict['Kd'].button.invoke()
             if owner == 'flop':
-                all_csw[owner].card_dict['Ah'].button.invoke()
-                all_csw[owner].card_dict['Kh'].button.invoke()
-                all_csw[owner].card_dict['Qh'].button.invoke()
+                all_csw[owner].cards_dict['Ah'].button.invoke()
+                all_csw[owner].cards_dict['Kh'].button.invoke()
+                all_csw[owner].cards_dict['Qh'].button.invoke()
             if owner == 'turn':
-                all_csw[owner].card_dict['As'].button.invoke()
+                all_csw[owner].cards_dict['As'].button.invoke()
             if owner == 'river':
-                all_csw[owner].card_dict['Ac'].button.invoke()
+                all_csw[owner].cards_dict['Ac'].button.invoke()
 
         for owner in all_csw:
-            for card in all_csw[owner].card_dict:
-                assert all_csw[owner].card_dict[card].button['bg'] == 'SystemButtonFace'
+            all_csw[owner].show()
+            for card in all_csw[owner].cards_dict:
+                assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
+                assert all_csw[owner].cards_dict[card].button['state'] == 'normal'
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestRangeSelection:
     def test_hands_dict_starts_169_hands(self, all_rsw):
         for slot in all_rsw:
@@ -310,30 +315,39 @@ class TestRangeSelection:
         all_rsw['pf1'].hands_dict['K3s'].button.invoke()
 
 
-@pytest.mark.isolate
+# @pytest.mark.isolate
 class TestHands:
     def test_selfbutton_store_a_button(self, all_rsw):
         for slot in all_rsw:
             for hand in all_rsw[slot].hands_dict:
                 assert type(all_rsw[slot].hands_dict[hand].button) == type(tkinter.Button())
 
+    # def test_card_removed_combos_start_empty(self, all_rsw):
+    #     for slot in all_rsw:
+    #         for card in all_rsw[slot].hands_dict:
+    #             assert all_rsw[slot].hands_dict[card].removed_combos == []
+
     def test_pairs_hands_have_6_combos(self, all_rsw):
         for slot in all_rsw:
             for hand in all_rsw[slot].hands_dict:
                 if hand[0] == hand[1]:
-                    assert all_rsw[slot].hands_dict[hand].hand_combos == 6
+                    assert all_rsw[slot].hands_dict[hand].n_hand_combos == 6
 
     def test_suited_hands_have_4_combos(self, all_rsw):
         for slot in all_rsw:
             for hand in all_rsw[slot].hands_dict:
                 if 's' in hand:
-                    assert all_rsw[slot].hands_dict[hand].hand_combos == 4
+                    assert all_rsw[slot].hands_dict[hand].n_hand_combos == 4
 
     def test_offsuited_hands_have_12_combos(self, all_rsw):
         for slot in all_rsw:
             for hand in all_rsw[slot].hands_dict:
                 if 'o' in hand:
-                    assert all_rsw[slot].hands_dict[hand].hand_combos == 12
+                    assert all_rsw[slot].hands_dict[hand].n_hand_combos == 12
+
+    def test_AKs_amount_combos(self, all_rsw):
+        assert all_rsw['pf1'].hands_dict['AKs'].combos == \
+            [('Ad', 'Kd'), ('Ah', 'Kh'), ('As', 'Ks'), ('Ac', 'Kc')]
 
     def test_ensure_no_color_selected(self, all_rsw):
         for slot in all_rsw:
@@ -448,6 +462,16 @@ class TestHands:
             if slot != 'pf1':
                 for hand in all_rsw[slot].hands_dict:
                     assert all_rsw[slot].hands_dict[hand].button['state'] == 'disabled'
+
+    def test_ensure_no_card_selected(self, all_csw):
+        for owner in all_csw:
+            for card in all_csw[owner].cards_dict:
+                assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
+
+    # def test_selected_card_remove_combos(self, all_csw, all_rsw):
+    #     all_csw['hero'].cards_dict['Ad'].button.invoke()
+    #     for combo in all_rsw['pf1'].hands_dict['AA'].removed_combos:
+    #         assert 'Ad' in combo
 
 
 if __name__ == '__main__':

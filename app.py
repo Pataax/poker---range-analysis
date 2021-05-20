@@ -193,7 +193,7 @@ class PokerRangeAnalysis:
     def clear_button_click(self, owner):
         self.widgets[owner]['entries'].delete(0, 'end')
         for card_name in csw_owners[owner].selected_cards[:]:
-            card_instance = csw_owners[owner].card_dict[card_name]
+            card_instance = csw_owners[owner].cards_dict[card_name]
             card_instance.deselect_card()
 
         return self.widgets[owner]['entries'].get()
@@ -213,7 +213,7 @@ class CardSelectionWindow:
         self.wcs.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
 
         self.selected_cards = []
-        self.card_dict = {}
+        self.cards_dict = {}
         self.create_layout()
 
     def create_layout(self):
@@ -229,7 +229,7 @@ class CardSelectionWindow:
                 card_color = naipes_list[row][1]
                 card_instance = Cards(self.owner, card_name, card_color, cards_frame, 
                     row, col)
-                self.card_dict[card_name] = card_instance
+                self.cards_dict[card_name] = card_instance
         
         self.ok_button = tkinter.Button(main_frame, text = 'OK', width = 6, state = 'disabled')
         self.ok_button.config(command = lambda: self.ok_button_click())
@@ -246,8 +246,8 @@ class CardSelectionWindow:
                 for card in csw_owners[ow].selected_cards:
                     blocked_cards.append(card)
         
-        for card_key in self.card_dict:
-            card_instance = self.card_dict[card_key]
+        for card_key in self.cards_dict:
+            card_instance = self.cards_dict[card_key]
             if card_key in blocked_cards:
                 card_instance.disable_card_button()
             elif card_instance.get_card_button_state() == 'disabled':
@@ -260,6 +260,25 @@ class CardSelectionWindow:
         
     def get_len_cards(self):
         return len(self.selected_cards)
+
+    def manages_ok_button(self):
+        qtd = self.get_len_cards()
+
+        if self.owner == 'hero':
+            if qtd == 2:
+                self.activate_ok_button()
+            elif qtd < 2:
+                self.disable_ok_button()
+        elif self.owner == 'flop':
+            if qtd == 3:
+                self.activate_ok_button()
+            elif qtd < 3:
+                self.disable_ok_button()
+        elif (self.owner == 'turn' or self.owner == 'river'):
+            if qtd == 1:
+                self.activate_ok_button()
+            elif qtd < 1:
+                self.disable_ok_button()
 
     def activate_ok_button(self):
         self.ok_button['state'] = 'active'
@@ -308,12 +327,11 @@ class RangeSelectionWindow:
         for row in range (13):
             for col in range (13):
                 hand_name = hands[hands_index]
-                hand_combos = len(combinations[hand_name])
                 original_hand_color = '#FFE7B5' if 's' in hand_name \
                 else '#E7EFF7' if 'o' in hand_name else '#CFDFC7'
                 # self.total_combos += hand_combos
 
-                hand_instance = Hands(self.slot_name, hand_name, hand_combos, original_hand_color, 
+                hand_instance = Hands(self.slot_name, hand_name, original_hand_color, 
                 hands_frame, row, col)
                 hands_index += 1
                 self.hands_dict[hand_name] = hand_instance
@@ -377,7 +395,7 @@ class RangeSelectionWindow:
     def count_total_combos(self):
         for hand in self.hands_dict:
             if self.hands_dict[hand].button['state'] == 'normal':
-                self.total_combos += self.hands_dict[hand].hand_combos
+                self.total_combos += self.hands_dict[hand].n_hand_combos
 
     def show(self):
         self.block_unused_hands()
@@ -488,46 +506,46 @@ class Cards:
             return "button can't be clicked"
 
     def select_card(self):
-        self.card_window = csw_owners[self.owner] # card selection window
         self.button['bg'] = 'gray'
-        self.card_window.selected_cards.append(self.card_name)
-
-        qtd = self.card_window.get_len_cards()
-
-        if self.owner == 'hero' and qtd == 2:
-            self.card_window.activate_ok_button()
-        elif self.owner == 'flop' and qtd == 3:
-            self.card_window.activate_ok_button()
-        elif (self.owner == 'turn' or self.owner == 'river') and qtd == 1:
-            self.card_window.activate_ok_button()
+        csw_owners[self.owner].selected_cards.append(self.card_name)
+        csw_owners[self.owner].manages_ok_button()
+        self.remove_hand_combos()
 
     def deselect_card(self):
-        self.card_window = csw_owners[self.owner] # card selection window
         self.button['bg'] = 'SystemButtonFace'
-        self.card_window.selected_cards.remove(self.card_name)
+        csw_owners[self.owner].selected_cards.remove(self.card_name)
+        csw_owners[self.owner].manages_ok_button()
+        self.re_add_hand_combos()
 
-        qtd = self.card_window.get_len_cards()
-
-        if self.owner == 'hero' and qtd < 2:
-            self.card_window.disable_ok_button()
-        elif self.owner == 'flop' and qtd < 3:
-            self.card_window.disable_ok_button()
-        elif (self.owner == 'turn' or self.owner == 'river') and qtd < 1:
-            self.card_window.disable_ok_button()
-        
     def normalize_card_button(self):
         self.button['state'] = 'normal'
 
     def disable_card_button(self):
         self.button['state'] = 'disabled'
 
+    def remove_hand_combos(self):
+        for slot in rsw_slots:
+            for hand in rsw_slots[slot].hands_dict:
+                for combo in rsw_slots[slot].hands_dict[hand].combos:
+                    if self.card_name in combo:
+                        rsw_slots[slot].hands_dict[hand].removed_combos.append(combo)
+
+    def re_add_hand_combos(self):
+        for slot in rsw_slots:
+            for hand in rsw_slots[slot].hands_dict:
+                for combo in rsw_slots[slot].hands_dict[hand].removed_combos:
+                    if self.card_name in combo:
+                        rsw_slots[slot].hands_dict[hand].removed_combos.remove(combo)
+
 
 class Hands:
-    def __init__(self, slot_name, hand_name, hand_combos, original_hand_color, frame, row, column):
+    def __init__(self, slot_name, hand_name, original_hand_color, frame, row, column):
         self.slot_name = slot_name
         self.hand_name = hand_name
-        self.hand_combos = hand_combos
-        self.hand_full_name = f'{hand_name}\n{hand_combos}'
+        self.combos = combinations[hand_name]
+        self.removed_combos = []
+        self.n_hand_combos = len(self.combos)
+        self.hand_full_name = f'{hand_name}\n{self.n_hand_combos}'
         self.original_hand_color = original_hand_color
         self.frame = frame
         self.row = row
@@ -557,7 +575,7 @@ class Hands:
     
     def select_hand(self):
         self.button['bg'] = self.current_color
-        rsw_slots[self.slot_name].selected_combos += self.hand_combos
+        rsw_slots[self.slot_name].selected_combos += self.n_hand_combos
         rsw_slots[self.slot_name].selected_hands.append(self.hand_name)
         rsw_slots[self.slot_name].update_label_combo()
 
@@ -566,7 +584,7 @@ class Hands:
 
     def deselect_hand(self):
         self.button['bg'] = self.original_hand_color
-        rsw_slots[self.slot_name].selected_combos -= self.hand_combos
+        rsw_slots[self.slot_name].selected_combos -= self.n_hand_combos
         rsw_slots[self.slot_name].selected_hands.remove(self.hand_name)
         rsw_slots[self.slot_name].update_label_combo()
 
