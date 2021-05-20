@@ -339,19 +339,19 @@ class TestHands:
         for slot in all_rsw:
             assert all_rsw[slot].current_color == ''
 
-    def test_select_hand_of1_without_first_selecting_color_doesnt_change_anything(self, all_rsw):
+    def test_select_hand_pf1_without_first_selecting_color_doesnt_change_anything(self, all_rsw):
         for hand in all_rsw['pf1'].hands_dict:
             assert all_rsw['pf1'].hands_dict[hand].button.invoke() == 'nothin has been changed'
 
-    def test_select_hand_of1_without_first_selecting_color_keeps_button_original_color(self, all_rsw):
+    def test_select_hand_pf1_without_first_selecting_color_keeps_button_original_color(self, all_rsw):
         for hand in all_rsw['pf1'].hands_dict:
             assert all_rsw['pf1'].hands_dict[hand].button['bg'] == \
                 all_rsw['pf1'].hands_dict[hand].original_hand_color
 
-    def test_select_hand_of1_without_first_selecting_color_returns_selected_combos_0(self, all_rsw):
+    def test_select_hand_pf1_without_first_selecting_color_returns_selected_combos_0(self, all_rsw):
         assert all_rsw['pf1'].selected_combos == 0
 
-    def test_select_hand_of1_without_first_selecting_color_returns_selected_hands_empty(self, all_rsw):
+    def test_select_hand_pf1_without_first_selecting_color_returns_selected_hands_empty(self, all_rsw):
         assert all_rsw['pf1'].selected_hands == []
 
     def test_select_hands_pf1_with_current_color_returns_colorful_button(self, all_rsw):
@@ -373,54 +373,53 @@ class TestHands:
     def test_select_hands_with_current_color_returns_selected_hands_list(self, all_rsw):
         assert all_rsw['pf1'].selected_hands == ['AA', 'AKs', 'AKo']
 
-    # def test_deselect_hands_returns_buttons_with_original_colors(self, all_rsw):
-    #     all_rsw[slot].color_buttons['1'].invoke()
-    #     all_rsw[slot].hands_dict['AA'].button.invoke()
-    #     all_rsw[slot].hands_dict['AKs'].button.invoke()
-    #     all_rsw[slot].hands_dict['AKo'].button.invoke()
-    #     assert all_rsw[slot].hands_dict['AA'].button['bg'] == all_rsw[slot].hands_dict['AA'].original_hand_color
-    #     assert all_rsw[slot].hands_dict['AKs'].button['bg'] == all_rsw[slot].hands_dict['AKs'].original_hand_color
-    #     assert all_rsw[slot].hands_dict['AKo'].button['bg'] == all_rsw[slot].hands_dict['AKo'].original_hand_color
+    def test_deselect_hands_pf1_returns_buttons_with_original_colors(self, all_rsw):
+        all_rsw['pf1'].color_buttons['1'].invoke()
+        for hand in all_rsw['pf1'].hands_dict:
+            if hand in ('AA', 'AKs', 'AKo'):
+                all_rsw['pf1'].hands_dict[hand].button.invoke()
+            assert all_rsw['pf1'].hands_dict[hand].button['bg'] == \
+                all_rsw['pf1'].hands_dict[hand].original_hand_color
 
-    # def test_deselect_hands_returns_selected_combos_0(self, all_rsw):
-    #     assert all_rsw[slot].selected_combos == 0
+    def test_deselect_hands_pf1_returns_selected_combos_0(self, all_rsw):
+        assert all_rsw['pf1'].selected_combos == 0
 
-    # def test_deselect_hands_returns_percent_combos_0(self, all_rsw):
-    #     assert all_rsw[slot].percent_hands_selected == 0
+    def test_deselect_hands_pf1_returns_percent_combos_0(self, all_rsw):
+        assert all_rsw['pf1'].percent_hands_selected == 0
 
-    # def test_deselect_hands_returns_selected_hands__list_empty(self, all_rsw):
-    #     assert all_rsw[slot].selected_hands == []
+    def test_deselect_hands_pf1_returns_selected_hands__list_empty(self, all_rsw):
+        assert all_rsw['pf1'].selected_hands == []
 
-    # def test_select_all_hands_return_percent_combos_100(self, all_rsw):
-    #     all_rsw[slot].color_buttons['2'].invoke()
+    def test_select_all_hands_return_percent_combos_100(self, all_rsw):
+        all_rsw['pf1'].color_buttons['1'].invoke()
+        for hand in all_rsw['pf1'].hands_dict:
+            all_rsw['pf1'].hands_dict[hand].button.invoke()
+        assert all_rsw['pf1'].percent_hands_selected == 100
 
-    #     for hand in all_rsw[slot].hands_dict:
-    #         all_rsw[slot].hands_dict[hand].button.invoke()
+    def test_select_all_hands_returns_selected_combos_1326(self, all_rsw):
+        assert all_rsw['pf1'].selected_combos == 1326
 
-    #     assert all_rsw[slot].percent_hands_selected == 100
+    def test_select_all_hands_returns_selected_hands_list_len_169(self, all_rsw):
+        assert len(all_rsw['pf1'].selected_hands) == 169
 
-    # def test_select_all_hands_returns_selected_combos_1326(self, all_rsw):
-    #     assert all_rsw[slot].selected_combos == 1326
+    def test_deselect_all_hands_return_percent_combos_0(self, all_rsw):
+        all_rsw['pf1'].color_buttons['1'].invoke()
+        all_rsw['pf1'].clear_button_click()
+        assert all_rsw['pf1'].percent_hands_selected == 0
 
-    # def test_select_all_hands_returns_selected_hands_list_len_169(self, all_rsw):
-    #     assert len(all_rsw[slot].selected_hands) == 169
+    def test_deselect_all_hands_returns_selected_combos_0(self, all_rsw):
+        assert all_rsw['pf1'].selected_combos == 0
 
-    # def test_deselect_all_hands_return_percent_combos_0(self, all_rsw):
-    #     all_rsw[slot].clear_button_click()
-    #     assert all_rsw[slot].percent_hands_selected == 0
+    def test_deselect_all_hands_returns_selected_hands_list_len_0(self, all_rsw):
+        assert len(all_rsw['pf1'].selected_hands) == 0
 
-    # def test_deselect_all_hands_returns_selected_combos_0(self, all_rsw):
-    #     assert all_rsw[slot].selected_combos == 0
-
-    # def test_deselect_all_hands_returns_selected_hands_list_len_0(self, all_rsw):
-    #     assert len(all_rsw[slot].selected_hands) == 0
-
-    # def test_reselect_hand_doesnt_change_selected_combo(self, all_rsw):
-    #     all_rsw[slot].color_buttons['1'].invoke()
-    #     all_rsw[slot].hands_dict['A2s'].button.invoke()
-    #     all_rsw[slot].color_buttons['2'].invoke()
-    #     all_rsw[slot].hands_dict['A2s'].button.invoke()
-    #     assert all_rsw[slot].selected_combos == 4
+    def test_reselect_hand_doesnt_change_selected_combo(self, all_rsw):
+        all_rsw['pf1'].color_buttons['1'].invoke()
+        all_rsw['pf1'].hands_dict['A2s'].button.invoke()
+        assert all_rsw['pf1'].selected_combos == 4
+        all_rsw['pf1'].color_buttons['2'].invoke()
+        all_rsw['pf1'].hands_dict['A2s'].button.invoke()
+        assert all_rsw['pf1'].selected_combos == 4
 
 
 if __name__ == '__main__':
