@@ -310,7 +310,6 @@ class RangeSelectionWindow:
         self.hands_dict = {}
         self.selected_hands = []
         self.selected_combos = 0
-        self.total_combos = 0
         self.color_buttons = {}
         self.current_color = ''
         self.create_layout()
@@ -393,6 +392,7 @@ class RangeSelectionWindow:
             return 'this is the first slot'
 
     def count_total_combos(self):
+        self.total_combos = 0
         for hand in self.hands_dict:
             if self.hands_dict[hand].button['state'] == 'normal':
                 self.total_combos += self.hands_dict[hand].n_hand_combos
@@ -528,14 +528,17 @@ class Cards:
             for hand in rsw_slots[slot].hands_dict:
                 for combo in rsw_slots[slot].hands_dict[hand].combos:
                     if self.card_name in combo:
-                        rsw_slots[slot].hands_dict[hand].removed_combos.append(combo)
+                        if combo not in rsw_slots[slot].hands_dict[hand].removed_combos:
+                            rsw_slots[slot].hands_dict[hand].removed_combos.append(combo)
+                rsw_slots[slot].hands_dict[hand].update_n_hand_combos()
 
     def re_add_hand_combos(self):
         for slot in rsw_slots:
             for hand in rsw_slots[slot].hands_dict:
-                for combo in rsw_slots[slot].hands_dict[hand].removed_combos:
+                for combo in rsw_slots[slot].hands_dict[hand].removed_combos[:]:
                     if self.card_name in combo:
                         rsw_slots[slot].hands_dict[hand].removed_combos.remove(combo)
+                rsw_slots[slot].hands_dict[hand].update_n_hand_combos()
 
 
 class Hands:
@@ -545,7 +548,7 @@ class Hands:
         self.combos = combinations[hand_name]
         self.removed_combos = []
         self.n_hand_combos = len(self.combos)
-        self.hand_full_name = f'{hand_name}\n{self.n_hand_combos}'
+        self.hand_full_name = f'{self.hand_name}\n{self.n_hand_combos}'
         self.original_hand_color = original_hand_color
         self.frame = frame
         self.row = row
@@ -587,6 +590,11 @@ class Hands:
         rsw_slots[self.slot_name].selected_combos -= self.n_hand_combos
         rsw_slots[self.slot_name].selected_hands.remove(self.hand_name)
         rsw_slots[self.slot_name].update_label_combo()
+
+    def update_n_hand_combos(self):
+        self.n_hand_combos = len(self.combos) - len(self.removed_combos)
+        self.hand_full_name = f'{self.hand_name}\n{self.n_hand_combos}'
+        self.button.config(text = self.hand_full_name)
 
 
 app = PokerRangeAnalysis()

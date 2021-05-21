@@ -161,11 +161,6 @@ class TestCardSelectionWindowOkandClearButtons:
     def test_flop_clear_button_clears_selected_list(self, all_csw):
         assert all_csw['flop'].selected_cards == []
 
-    def test_card_removed_combos_start_empty(self, all_rsw):
-        for slot in all_rsw:
-            for card in all_rsw[slot].hands_dict:
-                assert all_rsw[slot].hands_dict[card].removed_combos == []
-
 
 # @pytest.mark.isolate
 class TestCardSelectionSelectingCards:
@@ -322,10 +317,10 @@ class TestHands:
             for hand in all_rsw[slot].hands_dict:
                 assert type(all_rsw[slot].hands_dict[hand].button) == type(tkinter.Button())
 
-    # def test_card_removed_combos_start_empty(self, all_rsw):
-    #     for slot in all_rsw:
-    #         for card in all_rsw[slot].hands_dict:
-    #             assert all_rsw[slot].hands_dict[card].removed_combos == []
+    def test_card_removed_combos_start_empty(self, all_rsw):
+        for slot in all_rsw:
+            for card in all_rsw[slot].hands_dict:
+                assert all_rsw[slot].hands_dict[card].removed_combos == []
 
     def test_pairs_hands_have_6_combos(self, all_rsw):
         for slot in all_rsw:
@@ -468,10 +463,24 @@ class TestHands:
             for card in all_csw[owner].cards_dict:
                 assert all_csw[owner].cards_dict[card].button['bg'] == 'SystemButtonFace'
 
-    # def test_selected_card_remove_combos(self, all_csw, all_rsw):
-    #     all_csw['hero'].cards_dict['Ad'].button.invoke()
-    #     for combo in all_rsw['pf1'].hands_dict['AA'].removed_combos:
-    #         assert 'Ad' in combo
+    def test_selected_card_remove_combos(self, all_csw, all_rsw):
+        all_csw['hero'].cards_dict['Ad'].button.invoke()
+        all_csw['hero'].cards_dict['Kc'].button.invoke()
+        for slot in all_rsw:
+            for hand in all_rsw[slot].hands_dict:
+                for combo in all_rsw[slot].hands_dict[hand].removed_combos:
+                    assert ('Ad' in combo) or ('Kc' in combo)
+
+    def test_selected_card_decreases_amount_combos(self, all_rsw):
+        for slot in all_rsw:
+            assert all_rsw[slot].hands_dict['AA'].n_hand_combos == 3
+
+    def test_deselected_card_remove_removed_combos(self, all_csw, all_rsw):
+        all_csw['hero'].cards_dict['Ad'].button.invoke()
+        all_csw['hero'].cards_dict['Kc'].button.invoke()
+        for slot in all_rsw:
+            for hand in all_rsw[slot].hands_dict:
+                assert all_rsw[slot].hands_dict[hand].removed_combos == []
 
 
 if __name__ == '__main__':
