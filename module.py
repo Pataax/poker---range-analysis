@@ -20,7 +20,6 @@ for f1 in figures_list:
         elif f1+f2+'o' not in hands:
                 hands.append(f2+f1+'o')
 
-
 # separate hands into pairs, suiteds and off-suiteds to make the combinations
 pairs = []
 suiteds = []
