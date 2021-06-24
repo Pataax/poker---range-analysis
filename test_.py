@@ -485,13 +485,13 @@ class TestHands:
 
 @pytest.mark.isolate
 class TestFinalTest:
-    def test_hero_cards_select_pf1_total_combos(self, all_csw, all_rsw):
+    def test_selected_hero_cards_pf1_total_combos_equal_1225(self, all_csw, all_rsw):
         all_csw['hero'].cards_dict['Ad'].button.invoke()    
         all_csw['hero'].cards_dict['Kh'].button.invoke()    
         all_rsw['pf1'].show()
         assert all_rsw['pf1'].total_combos == 1225
 
-    def test_pf1_selected_combos(self, all_csw, all_rsw):
+    def test_pf1_range_selected_combos_equal_343(self, all_rsw):
         pf1_range = ['JJ', 'TT', '99', '88', '77', '66', '55', '44', '33', '22',
                     'AJs', 'ATs', 'A9s', 'A8s', 'A7s', 'A6s', 'A5s', 'A4s', 'A3s', 'A2s', 
                     'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'QJs', 'QTs', 'Q9s', 'Q8s', 
@@ -505,20 +505,20 @@ class TestFinalTest:
         assert all_rsw['pf1'].selected_combos == 343
         all_rsw['pf1'].color_buttons['1'].invoke()
 
-    def test_pf1_percent_hands_selected(self, all_csw, all_rsw):
+    def test_pf1_percent_hands_selected_equal_28(self, all_rsw):
         assert round(all_rsw['pf1'].percent_hands_selected, 2) == 28
 
-    def test_flop_cards_select_pf2_total_combos(self, all_csw, all_rsw):
+    def test_selected_flop_cards_pf2_total_combos_equal_303(self, all_csw, all_rsw):
         all_csw['flop'].cards_dict['4d'].button.invoke()    
         all_csw['flop'].cards_dict['Qs'].button.invoke()    
         all_csw['flop'].cards_dict['Tc'].button.invoke()    
         all_rsw['pf1'].widgets['next_slot'].invoke()
         assert all_rsw['pf2'].total_combos == 303
 
-    def test_pf2_selected_combos_starts_empty(self, all_csw, all_rsw):
+    def test_pf2_selected_combos_starts_empty(self, all_rsw):
         assert all_rsw['pf2'].selected_combos == 0
 
-    def test_pf2_selected_combos(self, all_csw, all_rsw):
+    def test_pf2_range_selected_combos_equal_192(self, all_rsw):
         pf2_range = ['JJ', 'TT', '44',
                     'AJs', 'ATs', 'A9s', 'A8s', 'A4s',
                     'KQs', 'KJs', 'KTs', 'K9s', 'K8s', 'QJs', 'QTs', 'Q9s', 'Q8s', 
@@ -531,7 +531,7 @@ class TestFinalTest:
             all_rsw['pf2'].hands_dict[hand].button.invoke()
         assert all_rsw['pf2'].selected_combos == 192
 
-    def test_pf2_percent_hands_selected(self, all_csw, all_rsw):
+    def test_pf2_percent_hands_selected(self, all_rsw):
         assert round(all_rsw['pf2'].percent_hands_selected, 2) == 63.37
 
 
