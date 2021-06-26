@@ -306,6 +306,9 @@ class RangeSelectionWindow:
         self.rsw.wm_resizable(False, False)
         self.rsw.withdraw()
         self.rsw.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
+        self.rsw.bind('<B1-Motion>', self.detect_widget)
+        self.current_widget = None
+
         self.widgets = {}
         self.hands_dict = {}
         self.selected_hands = []
@@ -371,6 +374,13 @@ class RangeSelectionWindow:
         self.label_combo = tkinter.Label(labels_frame) # update_label_combo
         self.label_combo.grid()
 
+    def detect_widget(self, event):
+        widget = event.widget.winfo_containing(event.x_root, event.y_root)
+        if self.current_widget != widget:
+            self.current_widget = widget
+            if self.current_widget != None:
+                self.current_widget.event_generate("<<B1-Enter>>")
+
     def block_unused_hands(self):
         keys = list(rsw_slots)
         current_slot_index = keys.index(self.slot_name)
@@ -379,15 +389,16 @@ class RangeSelectionWindow:
         if current_slot_index != 0 and rsw_slots['pf1'].selected_hands == []:
             for hand in self.hands_dict:
                 self.hands_dict[hand].button['state'] = 'disabled'
-                self.hands_dict[hand].button['bg'] = 'Systembuttonface'
+                self.hands_dict[hand].button['bg'] = 'gray'
         elif current_slot_index != 0:
             for hand in self.hands_dict:
                 if hand not in rsw_slots[previous_slot].selected_hands:
                     self.hands_dict[hand].button['state'] = 'disabled'
-                    self.hands_dict[hand].button['bg'] = 'Systembuttonface'
+                    self.hands_dict[hand].button['bg'] = 'gray'
                 else:
                     self.hands_dict[hand].button['state'] = 'normal'
-                    self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
+                    if self.hands_dict[hand].button['bg'] == 'gray':
+                        self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
         else:
             return 'this is the first slot'
 
@@ -560,21 +571,23 @@ class Hands:
         hand_button = tkinter.Button(self.frame, width = 5, bg = self.original_hand_color, 
             text = self.hand_full_name)
         hand_button.config(command = lambda: self.hand_button_clicked())
+        hand_button.bind('<<B1-Enter>>', lambda event: self.hand_button_clicked())
         hand_button.grid(row = self.row, column = self.column)
         self.button = hand_button
 
     def hand_button_clicked(self):
         self.current_color = rsw_slots[self.slot_name].current_color
 
-        if self.current_color != '' and self.button['bg'] == self.original_hand_color:
-            return self.select_hand()
-        elif self.current_color != '' and self.button['bg'] != self.current_color:
-            return self.reselect_hand()
-        elif (self.button['bg'] == self.current_color) or (self.current_color == '' and \
-            self.button['bg'] != self.original_hand_color):
-            return self.deselect_hand()
-        else:
-            return 'nothin has been changed'
+        if self.button['state'] != 'disabled': # avoids error in bind
+            if self.current_color != '' and self.button['bg'] == self.original_hand_color:
+                return self.select_hand()
+            elif self.current_color != '' and self.button['bg'] != self.current_color:
+                return self.reselect_hand()
+            elif (self.button['bg'] == self.current_color) or (self.current_color == '' and \
+                self.button['bg'] != self.original_hand_color):
+                return self.deselect_hand()
+            else:
+                return 'nothin has been changed'
     
     def select_hand(self):
         self.button['bg'] = self.current_color

@@ -6,3 +6,10 @@ Card Selection Window:
     porém, ao reabrir o toplevel, nenhuma carta está selecionada.
     Soluções: resselecionar as cartas ao abrir o toplevel com base na entry? ou cancelar a 
     desseleção das cartas ao fechar a janela?
+
+Hand Buttons Bind:
+    Preciso fazer um ajuste fino no bind das mãos (hand buttons). Ao segurar o botão do mouse e
+    arrastar, as vezes ocorre de desselecionar uma carta. Preciso que funcione igual o 
+    PokerStrategy: Apenas uma função por vez, ou está selecionando e mesmo ao passar por cima de 
+    cartas que já estão selecionadas, nada acontece. Ou a função é desselecionar, e ao passar
+    por cartas que já estão desseecionadas, não faz com que elas sejam selecionadas sem querer.

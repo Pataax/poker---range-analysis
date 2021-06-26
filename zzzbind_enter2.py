@@ -6,7 +6,8 @@ def show_info(event):
     widget = event.widget.winfo_containing(event.x_root, event.y_root)
     if current_widget != widget:
         current_widget = widget
-        current_widget.event_generate("<<B1-Enter>>")
+        print(widget)
+        # current_widget.event_generate("<<B1-Enter>>")
 
 def on_enter(event):
     if event.widget['relief'] == 'raised':
@@ -23,9 +24,9 @@ l2 = tk.Button(root, text='AQs')
 l1.pack(padx=20, pady=20)
 l2.pack(padx=20, pady=20)
 
-root.bind_all("<B1-Motion>", show_info)
+root.bind("<B1-Motion>", show_info)
 l1.bind("<<B1-Enter>>", on_enter)
 l2.bind("<<B1-Enter>>", on_enter)
 
 
-tk.mainloop()
+# tk.mainloop()
