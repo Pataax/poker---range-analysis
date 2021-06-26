@@ -483,7 +483,6 @@ class TestHands:
                 assert all_rsw[slot].hands_dict[hand].removed_combos == []
 
 
-@pytest.mark.isolate
 class TestFinalTest:
     def test_selected_hero_cards_pf1_total_combos_equal_1225(self, all_csw, all_rsw):
         all_csw['hero'].cards_dict['Ad'].button.invoke()    
