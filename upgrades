@@ -1,15 +1,40 @@
 Card Selection Window:
     Toda vez que uma carta for selecionada, as demais janelas de Card Selection que estiverem
-    abertas devem ser atualizadas, para que a seleção seja vista em tempo real nas demais janelas.
+    abertas devem ser atualizadas, para que a seleção seja vista em tempo real nas demais janelas;
 
     Ao desselecionar as carta de uma janela e fechar o toplevel, a entry permanece preenchida,
     porém, ao reabrir o toplevel, nenhuma carta está selecionada.
     Soluções: resselecionar as cartas ao abrir o toplevel com base na entry? ou cancelar a 
     desseleção das cartas ao fechar a janela?
 
+
 Hand Buttons Bind:
+    Existe conflito entre o bind B1-Motion e o click
+
     Preciso fazer um ajuste fino no bind das mãos (hand buttons). Ao segurar o botão do mouse e
     arrastar, as vezes ocorre de desselecionar uma carta. Preciso que funcione igual o 
     PokerStrategy: Apenas uma função por vez, ou está selecionando e mesmo ao passar por cima de 
     cartas que já estão selecionadas, nada acontece. Ou a função é desselecionar, e ao passar
     por cartas que já estão desseecionadas, não faz com que elas sejam selecionadas sem querer.
+
+
+Range Window Select:
+    Ao clickar em 'next slot' no PF1, deve-se abrir a janela do PF2 já com todas as cartas
+    selecionadas (mesmas cores do PF1);
+
+    Botão 'next street' do PF2 não está funcionando. Não está jogando o range para o T1;
+
+    Inserir botão para selecionar todas as mãos disponíveis
+
+    Inserir quantidade de combos e percentual de combos para cada um dos ranges (cores)
+
+    Inserir dinâmica para o título das janelas (ex: hero cbet - vilão call);
+
+    Ao clicar em 'next street' no PF2, deve-se abrir a janela para seleção das cartas do flop e
+    ao dar OK nas cartas do flop, deve-se abrir a janela de range da F1.
+
+    Nas janelas que servem apenas para reavaliar a força dos ranges e analisar o efeito dos
+    blockers da street em questão. Deve-se ter um alerta caso o usuário tente desselecionar
+    uma mão.
+
+    

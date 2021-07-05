@@ -299,10 +299,10 @@ class CardSelectionWindow:
 
 
 class RangeSelectionWindow:
-    def __init__(self, slot_name):
+    def __init__(self, slot_name, text=''):
         self.slot_name = slot_name
         self.rsw = tkinter.Toplevel()
-        self.rsw.title(f'Seleção de ranges - {self.slot_name.upper()}')
+        self.rsw.title(f'Seleção de ranges - {self.slot_name.upper()} - {text.capitalize()}')
         self.rsw.wm_resizable(False, False)
         self.rsw.withdraw()
         self.rsw.protocol("WM_DELETE_WINDOW", lambda: self.cancel_button_click())
@@ -331,7 +331,6 @@ class RangeSelectionWindow:
                 hand_name = hands[hands_index]
                 original_hand_color = '#FFE7B5' if 's' in hand_name \
                 else '#E7EFF7' if 'o' in hand_name else '#CFDFC7'
-                # self.total_combos += hand_combos
 
                 hand_instance = Hands(self.slot_name, hand_name, original_hand_color, 
                 hands_frame, row, col)
@@ -405,8 +404,11 @@ class RangeSelectionWindow:
     def count_total_combos(self):
         self.total_combos = 0
         for hand in self.hands_dict:
-            if self.hands_dict[hand].button['state'] == 'normal':
+            if self.slot_name == 'pf2':
                 self.total_combos += self.hands_dict[hand].n_hand_combos
+            else:
+                if self.hands_dict[hand].button['state'] == 'normal':
+                    self.total_combos += self.hands_dict[hand].n_hand_combos
 
     def show(self):
         self.block_unused_hands()
@@ -536,12 +538,13 @@ class Cards:
 
     def remove_hand_combos(self):
         for slot in rsw_slots:
-            for hand in rsw_slots[slot].hands_dict:
-                for combo in rsw_slots[slot].hands_dict[hand].combos:
-                    if self.card_name in combo:
-                        if combo not in rsw_slots[slot].hands_dict[hand].removed_combos:
-                            rsw_slots[slot].hands_dict[hand].removed_combos.append(combo)
-                rsw_slots[slot].hands_dict[hand].update_n_hand_combos()
+            if slot != 'pf1': #pf1 slot don't discount any combo
+                for hand in rsw_slots[slot].hands_dict:
+                    for combo in rsw_slots[slot].hands_dict[hand].combos:
+                        if self.card_name in combo:
+                            if combo not in rsw_slots[slot].hands_dict[hand].removed_combos:
+                                rsw_slots[slot].hands_dict[hand].removed_combos.append(combo)
+                    rsw_slots[slot].hands_dict[hand].update_n_hand_combos()
 
     def re_add_hand_combos(self):
         for slot in rsw_slots:
@@ -617,10 +620,14 @@ csw_owners = {'hero': CardSelectionWindow('hero'), 'flop': CardSelectionWindow('
     'turn': CardSelectionWindow('turn'), 'river': CardSelectionWindow('river'), }
 
 # creates the range selection window for each street
-rsw_slots = {'pf1': RangeSelectionWindow('pf1'), 'pf2': RangeSelectionWindow('pf2'), 
-    'f1': RangeSelectionWindow('f1'),'f2': RangeSelectionWindow('f2'),'f3': RangeSelectionWindow('f3'),
-    't1': RangeSelectionWindow('t1'), 't2': RangeSelectionWindow('t2'), 't3': RangeSelectionWindow('t3'), 
-    'r1': RangeSelectionWindow('r1'), 'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
+rsw_slots = {'pf1': RangeSelectionWindow('pf1', 'sem desconto de combos'), 
+    'pf2': RangeSelectionWindow('pf2', 'considera os blocks da mão do Hero'), 
+    'f1': RangeSelectionWindow('f1', 'efeito das blockers do flop'),
+    'f2': RangeSelectionWindow('f2'),'f3': RangeSelectionWindow('f3'),
+    't1': RangeSelectionWindow('t1', 'efeito das blockers do turn'), 
+    't2': RangeSelectionWindow('t2'), 't3': RangeSelectionWindow('t3'), 
+    'r1': RangeSelectionWindow('r1', 'efeito das blockers do river'), 
+    'r2': RangeSelectionWindow('r2'), 'r3': RangeSelectionWindow('r3')}
 
 pf_selected_color = ''
 
