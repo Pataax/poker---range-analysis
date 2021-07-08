@@ -14,14 +14,14 @@ class PokerRangeAnalysis:
         
         self.create_tabs_layout()
         self.creates_cards_selection_frame(self.root, 1, 0)
-
+        
     def create_tabs_layout(self):
-        tabs_control = ttk.Notebook(self.root)
-        tabs_control.grid(padx = 5, pady = 5)
+        self.tabs_control = ttk.Notebook(self.root)
+        self.tabs_control.grid(padx = 5, pady = 5)
 
         # Tab Start
-        tab_start = ttk.Frame(tabs_control, width = 546, height = 210)
-        tabs_control.add(tab_start, text="Início")
+        tab_start = ttk.Frame(self.tabs_control, width = 546, height = 210)
+        self.tabs_control.add(tab_start, text="Início")
 
         #  Tab Start - Frame Basic Informations
         label_frame = tkinter.LabelFrame(tab_start, text = "Informações Básicas", 
@@ -116,7 +116,7 @@ class PokerRangeAnalysis:
             self.creates_slot_buttons(main_frame, path['qtd'], path['tab_name'], 0, 0)
             self.creates_equity_frame(main_frame, path['qtd'], 'equity', 0, 1)
             self.creates_equity_frame(main_frame, path['qtd'], 'fold_equity', 0, 2)
-            tabs_control.add(main_frame, text = street)
+            self.tabs_control.add(main_frame, text = street)
     
     def creates_slot_buttons(self, frame, qtd, abbreviation, row, column):
         buttons_frame = tkinter.Frame(frame)
@@ -200,7 +200,7 @@ class PokerRangeAnalysis:
         
     def show(self):
         self.root.mainloop()
-
+        
 
 class CardSelectionWindow:
     def __init__(self, owner_cards):
@@ -385,10 +385,21 @@ class RangeSelectionWindow:
         current_slot_index = keys.index(self.slot_name)
 
         previous_slot = keys[current_slot_index - 1]
+        previous_slot_2 = keys[current_slot_index - 2]
         if current_slot_index != 0 and rsw_slots['pf1'].selected_hands == []:
             for hand in self.hands_dict:
                 self.hands_dict[hand].button['state'] = 'disabled'
                 self.hands_dict[hand].button['bg'] = 'gray'
+        elif current_slot_index in (5, 8):
+            if rsw_slots[previous_slot].selected_hands == []:
+                for hand in self.hands_dict:
+                    if hand not in rsw_slots[previous_slot_2].selected_hands:
+                        self.hands_dict[hand].button['state'] = 'disabled'
+                        self.hands_dict[hand].button['bg'] = 'gray'
+                else:
+                    self.hands_dict[hand].button['state'] = 'normal'
+                    if self.hands_dict[hand].button['bg'] == 'gray':
+                        self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
         elif current_slot_index != 0:
             for hand in self.hands_dict:
                 if hand not in rsw_slots[previous_slot].selected_hands:
@@ -463,8 +474,8 @@ class RangeSelectionWindow:
 
     def next_street_button_click(self):
         self.rsw.withdraw()
-        keys = list(rsw_slots)
 
+        keys = list(rsw_slots)
         current_slot_first_char = keys[keys.index(self.slot_name)][0]
         next_slot_first_char = keys[((keys.index(self.slot_name)) + 1)][0]
 
@@ -472,11 +483,28 @@ class RangeSelectionWindow:
             next_street = keys[keys.index(self.slot_name) + 2]
         else:
             next_street = keys[keys.index(self.slot_name) + 1]
-
-        rsw_slots[next_street].show()
-
+      
+        # rsw_slots[next_street].show()
+        self.manages_opening_csw(next_street)
+        self.manages_tabs_activation(next_street)
         return next_street
 
+    def manages_opening_csw(self, next_street):
+        if 'f' in next_street:
+            csw_owners['flop'].show()
+        elif 't' in next_street:
+            csw_owners['turn'].show()
+        else:
+            csw_owners['river'].show()
+
+    def manages_tabs_activation(self, next_street):
+        if 'f' in next_street:
+            app.tabs_control.select(2)
+        elif 't' in next_street:
+            app.tabs_control.select(3)
+        else:
+            app.tabs_control.select(4)
+        
 
 class Cards:
     def __init__(self, owner_cards, card_name, card_color, frame, row, column):
@@ -634,3 +662,4 @@ pf_selected_color = ''
 
 if __name__ == '__main__':
     app.show()
+    

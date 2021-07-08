@@ -1,5 +1,3 @@
-"""Unit Tests"""
-
 from tkinter.constants import S
 import pytest
 import tkinter
@@ -221,7 +219,7 @@ class TestCardSelectionSelectingCards:
 
 
 # @pytest.mark.isolate
-class TestRangeSelection:
+class TestRSWInitialParameters:
     def test_hands_dict_starts_169_hands(self, all_rsw):
         for slot in all_rsw:
             assert len(all_rsw[slot].hands_dict) == 169
@@ -240,6 +238,9 @@ class TestRangeSelection:
             for cb_name in all_rsw[slot].color_buttons:
                 assert type(all_rsw[slot].color_buttons[cb_name]) == type(tkinter.Button())
 
+
+# @pytest.mark.isolate
+class TestRSWColorButtons:
     def test_select_a_color_button_returns_sunken_relief(self, all_rsw):
         for slot in all_rsw:
             assert all_rsw[slot].color_buttons['1'].invoke() == 'sunken'
@@ -268,6 +269,9 @@ class TestRangeSelection:
         for slot in all_rsw:
             assert all_rsw[slot].color_buttons['2']['relief'] == 'raised'
 
+
+# @pytest.mark.isolate
+class TestRSWSlots:
     def test_some_slots_have_next_street_button(self, all_rsw):
         for slot in all_rsw:
             if slot in ('pf2', 'f2', 'f3', 't2', 't3'):
@@ -291,7 +295,10 @@ class TestRangeSelection:
         assert all_rsw['t2'].next_street_button_click() == 'r1'
         assert all_rsw['t3'].next_street_button_click() == 'r1'
 
-    def test_block_unused_cards(self, all_rsw):
+
+# @pytest.mark.isolate
+class TestRSWBlockUnusedHands:
+    def test_block_unused_hands(self, all_rsw):
         all_rsw['pf1'].color_buttons['1'].invoke()
         all_rsw['pf1'].hands_dict['A2s'].button.invoke()
         all_rsw['pf1'].hands_dict['A3s'].button.invoke()
@@ -310,7 +317,7 @@ class TestRangeSelection:
 
 
 # @pytest.mark.isolate
-class TestHands:
+class TestRSWHands:
     def test_selfbutton_store_a_button(self, all_rsw):
         for slot in all_rsw:
             for hand in all_rsw[slot].hands_dict:
