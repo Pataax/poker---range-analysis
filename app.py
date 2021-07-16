@@ -214,7 +214,7 @@ class CardSelectionWindow:
 
         self.selected_cards = []
         self.cards_dict = {}
-        self.create_layout()
+        self.create_layout()        
 
     def create_layout(self):
         main_frame = tkinter.Frame(self.wcs)
@@ -385,7 +385,7 @@ class RangeSelectionWindow:
         current_slot_index = keys.index(self.slot_name)
 
         previous_slot = keys[current_slot_index - 1]
-        previous_slot_2 = keys[current_slot_index - 2]
+        third_last_slot = keys[current_slot_index - 2]
         if current_slot_index != 0 and rsw_slots['pf1'].selected_hands == []:
             for hand in self.hands_dict:
                 self.hands_dict[hand].button['state'] = 'disabled'
@@ -393,13 +393,13 @@ class RangeSelectionWindow:
         elif current_slot_index in (5, 8):
             if rsw_slots[previous_slot].selected_hands == []:
                 for hand in self.hands_dict:
-                    if hand not in rsw_slots[previous_slot_2].selected_hands:
+                    if hand not in rsw_slots[third_last_slot].selected_hands:
                         self.hands_dict[hand].button['state'] = 'disabled'
                         self.hands_dict[hand].button['bg'] = 'gray'
-                else:
-                    self.hands_dict[hand].button['state'] = 'normal'
-                    if self.hands_dict[hand].button['bg'] == 'gray':
-                        self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
+                    else:
+                        self.hands_dict[hand].button['state'] = 'normal'
+                        if self.hands_dict[hand].button['bg'] == 'gray':
+                            self.hands_dict[hand].button['bg'] = self.hands_dict[hand].original_hand_color
         elif current_slot_index != 0:
             for hand in self.hands_dict:
                 if hand not in rsw_slots[previous_slot].selected_hands:
@@ -662,4 +662,3 @@ pf_selected_color = ''
 
 if __name__ == '__main__':
     app.show()
-    
